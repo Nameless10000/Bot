@@ -60,5 +60,11 @@ namespace BotApi.Controllers
         {
             return await _botHostService.AppointToWorkerAsync(creatingDTO) ? Ok() : BadRequest();
         }
+
+        [HttpPost]
+        public async Task<IActionResult> AddUser(UserAddDTO addDTO)
+        {
+            return await _botHostService.AddUserAsync(addDTO) ? Ok() : BadRequest();
+        }
     }
 }

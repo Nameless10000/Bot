@@ -62,9 +62,10 @@ namespace BotApi.Services
 
         public async Task<bool> AppointToWorkerAsync(AppointmentCreatingDTO creatingDTO)
         {
-            var isWorkerAvailable = !await _botDbContext.Appointments
+            var isWorkerAvailable = !(await _botDbContext.Appointments
                 .Where(x => x.WorkerID == creatingDTO.WorkerID)
-                .AnyAsync(x => (creatingDTO.StartsAt < x.StartsAt + x.Longevity 
+                .ToListAsync())
+                .Any(x => (creatingDTO.StartsAt < x.StartsAt + x.Longevity 
                 && creatingDTO.StartsAt > x.StartsAt)
                 || (creatingDTO.StartsAt + creatingDTO.Longevity < x.StartsAt + x.Longevity 
                 && creatingDTO.StartsAt + creatingDTO.Longevity > x.StartsAt));
@@ -85,5 +86,21 @@ namespace BotApi.Services
             await _botDbContext.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> AddUserAsync(UserAddDTO addDTO)
+        {
+            if (!await _botDbContext.Users.AnyAsync(x => x.ID == addDTO.ID))
+                return false;
+
+            var newUser = new User
+            {
+                ID = addDTO.ID,
+                UserName = addDTO.UserName
+            };
+
+            await _botDbContext.Users.AddAsync(newUser);
+            await _botDbContext.SaveChangesAsync();
+            return true;
+        } 
     }
 }
