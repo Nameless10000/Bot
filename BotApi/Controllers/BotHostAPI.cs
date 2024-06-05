@@ -1,4 +1,4 @@
-﻿using BotApi.Models;
+﻿using BotApi.Models.Configurations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;

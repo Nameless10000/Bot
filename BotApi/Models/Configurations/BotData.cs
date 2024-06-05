@@ -1,4 +1,4 @@
-﻿namespace BotApi.Models
+﻿namespace BotApi.Models.Configurations
 {
     public class BotData
     {
