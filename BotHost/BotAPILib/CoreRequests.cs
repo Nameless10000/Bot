@@ -1,4 +1,5 @@
 ﻿using BotApi.Models.DbEntities;
+using BotAPILib.DTOs;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -21,10 +22,25 @@ namespace BotAPILib
             var result = await res.Content.ReadFromJsonAsync<List<Worker>>();
             return result;
         }
+
         public static async Task<List<Discipline>> GetDisciplines()
         {
             var res = await _httpClient.GetAsync("http://localhost:5274/api/BotHostAPI/GetDisciplines");
             var result = await res.Content.ReadFromJsonAsync<List<Discipline>>();
+            return result;
+        }
+
+        public static async Task<List<Worker>> GetWorkersByDiscipline()
+        {
+            var res = await _httpClient.GetAsync("http://localhost:5274/api/BotHostAPI/GetWorkersByDiscipline");
+            var result = await res.Content.ReadFromJsonAsync<List<Worker>>();
+            return result;
+        }
+
+        public static async Task<List<NextTimeDTO>> GetNextAvailableTime()
+        {
+            var res = await _httpClient.GetAsync("http://localhost:5274/api/BotHostAPI/GetNextAvailableTime");
+            var result = await res.Content.ReadFromJsonAsync<List<NextTimeDTO>>();
             return result;
         }
     }
