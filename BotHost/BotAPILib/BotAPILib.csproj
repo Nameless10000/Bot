@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\BotApi\BotApi.csproj" />
+  </ItemGroup>
+
 </Project>
