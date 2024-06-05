@@ -12,7 +12,6 @@ namespace BotHost;
 public class Program
 {
     private static TelegramBotClient _botClient;
-    private static readonly HttpClient _httpClient = new();
     private static readonly InputFile errorSticker = InputFile.FromString("CAACAgIAAxkBAAEF7KFmYH1DPjnUE7L5aqRhpc14nyANPwACEDwAAt-BkUpgkS6UfM10vTUE");
 
     private static List<string> _commandsAvailable = new()
@@ -27,15 +26,15 @@ public class Program
 
     private static async Task MainAsync()
     {
-        var token = await CoreRequests.GetBotTokenAsync("v4)xh_VN>%539~r:J6sYD7");
-        _botClient = new TelegramBotClient(token, _httpClient);
+        var token = await CoreRequests.GetBotTokenAsync("qwerty");
+        _botClient = new TelegramBotClient(token);
         _botClient.StartReceiving(UpdateHandler, ErrorHandler);
         Console.ReadLine();
     }
 
     private static async Task ErrorHandler(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        
     }
 
     private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -45,27 +44,20 @@ public class Program
 
     private static async Task ProcedureMessageAsync(Update update)
     {
-        if (update.Message != null && update.Message.Entities.Any())
+        if (update.Message != null)
         {
-            foreach (var entity in update.Message.Entities)
-                await ProcedureCommand(update.Message, entity);
+            await ProcedureCommand(update.Message);
         }
     }
 
-    private static async Task ProcedureCommand (Message message, MessageEntity entity)
+    private static async Task ProcedureCommand (Message message, MessageEntity entity = null)
     {
-        if (entity.Type != MessageEntityType.BotCommand)
+        if (entity == null || entity.Type != MessageEntityType.BotCommand)
             await _botClient.SendStickerAsync(
                 chatId: message.Chat.Id,
                 sticker: errorSticker
                 );
             await _botClient.SendTextMessageAsync(message.Chat, "Введите команду");
 
-        var command = string.Join("", message.Text.Skip(entity.Offset).Take(entity.Length));
-
-        if (!_commandsAvailable.Contains(command))
-        {
-
-        }
     }
 }
