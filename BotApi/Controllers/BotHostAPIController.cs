@@ -1,4 +1,5 @@
 ﻿using BotApi.Models.Configurations;
+using BotApi.Models.DbEntities;
 using BotApi.Models.DTOs;
 using BotApi.Services;
 using Microsoft.AspNetCore.Http;
@@ -12,13 +13,13 @@ namespace BotApi.Controllers
     [ApiController]
     public class BotHostAPIController : ControllerBase
     {
-        private readonly BotDbContext _botDbContext;
         private readonly BotData _botData;
+        private readonly BotHostService _botHostService;
 
-        public BotHostAPIController(IOptions<BotData> botData, BotDbContext botDbContext)
+        public BotHostAPIController(IOptions<BotData> botData, BotHostService botHostService)
         {
             _botData = botData.Value;
-            _botDbContext = botDbContext;
+            _botHostService = botHostService;
         }
 
         [HttpGet]
@@ -33,49 +34,31 @@ namespace BotApi.Controllers
         [HttpGet]
         public async Task<JsonResult> GetWorkers()
         {
-            return new( await _botDbContext.Workers.ToListAsync());
+            return new(await _botHostService.GetWorkersAsync());
         }
 
         [HttpGet]
         public async Task<JsonResult> GetDisciplines()
         {
-            return new(await _botDbContext.Disciplines.ToListAsync());
+            return new(await _botHostService.GetDisciplinesAsync());
         }
 
         [HttpGet]
         public async Task<JsonResult> GetWorkersByDiscipline([FromQuery] int disciplineID)
         {
-            return new(await _botDbContext.WorkerDisciplines
-                .Include(x => x.Worker)
-                .Where(x => x.DisciplineID == disciplineID)
-                .Select(x => x.Worker)
-                .ToListAsync());
+            return new(await _botHostService.GetWorkersByDisciplineAsync(disciplineID));
         }
 
         [HttpPost]
         public async Task<JsonResult> GetNextAvailableTime([FromBody] NextAvailableRequestParams requestParams)
         {
-            var nextTimeQuery = _botDbContext.Appointments
-                .Include(x => x.Worker)
-                .Where(x => x.DisciplineID == requestParams.DisciplineID)
-                .AsQueryable();
+            return new(await _botHostService.GetNextAvailableTimeAsync(requestParams));
+        }
 
-            if (requestParams.WorkerID != null)
-                nextTimeQuery = nextTimeQuery
-                    .Where(x => x.WorkerID == requestParams.WorkerID)
-                    .AsQueryable();
-
-            var now = DateTime.Now;
-
-            var nextTime = await nextTimeQuery.ToListAsync();
-
-            return new(nextTime
-                .Select(x => new 
-                    { x.Worker, NextAvailableTime = x.StartsAt - now < TimeSpan.FromMinutes(30) 
-                        ? x.StartsAt + x.Longevity + TimeSpan.FromMinutes(15) 
-                        : now 
-                    })
-                .ToList());
+        [HttpPost]
+        public async Task<IActionResult> AppointToWorker(AppointmentCreatingDTO creatingDTO)
+        {
+            return await _botHostService.AppointToWorkerAsync(creatingDTO) ? Ok() : BadRequest();
         }
     }
 }
