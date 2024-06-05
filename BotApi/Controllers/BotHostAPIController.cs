@@ -52,7 +52,8 @@ namespace BotApi.Controllers
                 .ToListAsync());
         }
 
-        public async Task<JsonResult> GetNextAvailableTime([FromQuery] NextAvailableRequestParams requestParams)
+        [HttpPost]
+        public async Task<JsonResult> GetNextAvailableTime([FromBody] NextAvailableRequestParams requestParams)
         {
             var nextTimeQuery = _botDbContext.Appointments
                 .Include(x => x.Worker)
@@ -69,9 +70,11 @@ namespace BotApi.Controllers
             var nextTime = await nextTimeQuery.ToListAsync();
 
             return new(nextTime
-                .Select(x => new { x.Worker, NextAvailableTime = x.StartsAt - now > TimeSpan.FromMinutes(30) 
-                    ? x.StartsAt + x.Longevity + TimeSpan.FromMinutes(15) 
-                    : now })
+                .Select(x => new 
+                    { x.Worker, NextAvailableTime = x.StartsAt - now < TimeSpan.FromMinutes(30) 
+                        ? x.StartsAt + x.Longevity + TimeSpan.FromMinutes(15) 
+                        : now 
+                    })
                 .ToList());
         }
     }
