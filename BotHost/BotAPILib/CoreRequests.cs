@@ -7,7 +7,7 @@
         {
             var res = await _httpClient.GetAsync($"http://localhost:5274/api/BotHostAPI/GetToken?pwd={pass}");
             var token = await res.Content.ReadAsStringAsync();
-            return token;
+            return token.Replace("\"", "");
         }
     }
 }

@@ -7,11 +7,11 @@ namespace BotApi.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class BotHostAPI : ControllerBase
+    public class BotHostAPIController : ControllerBase
     {
         private BotData _botData;
 
-        public BotHostAPI(IOptions<BotData> botData)
+        public BotHostAPIController(IOptions<BotData> botData)
         {
             _botData = botData.Value;
         }
