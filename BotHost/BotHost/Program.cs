@@ -6,10 +6,23 @@ namespace BotHost;
 
 public class Program
 {
+    private static List<string> _commandsAvailable = new()
+    {
+        "/someMessage"
+    };
+
     static void Main(string[] args)
     {
-        Console.WriteLine("Hello, World!");
+        MainAsync().GetAwaiter().GetResult();
     }
 
+<<<<<<< Updated upstream
+=======
+    private static async Task MainAsync()
+    {
+
+    }
+
+>>>>>>> Stashed changes
 
 }
