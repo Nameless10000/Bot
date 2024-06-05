@@ -5,7 +5,9 @@ VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotHost", "BotHost\BotHost.csproj", "{CD199EF0-FAED-48E9-8C43-AB3FE54B5838}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotAPILib", "BotAPILib\BotAPILib.csproj", "{67D8363C-06EC-4C56-815E-93C23788A5CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotAPILib", "BotAPILib\BotAPILib.csproj", "{67D8363C-06EC-4C56-815E-93C23788A5CC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotApi", "..\BotApi\BotApi.csproj", "{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{67D8363C-06EC-4C56-815E-93C23788A5CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67D8363C-06EC-4C56-815E-93C23788A5CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67D8363C-06EC-4C56-815E-93C23788A5CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
