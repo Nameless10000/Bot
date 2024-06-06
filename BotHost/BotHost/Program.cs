@@ -1,6 +1,5 @@
 ﻿using BotAPILib;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -100,11 +99,11 @@ public class Program
 
             await (command switch
             {
-                "/workers" => SendWorkers(message.Chat),
+                "/workers" => HandleWorkers(message.Chat),
                 "/disciplines" => HandleDisciplines(message.Chat),
                 "/appoint" => _botClient.SendTextMessageAsync(message.Chat, "appoint"),
-                "/workersByDiscipline" => SendWorkers(message.Chat),
-                "/nextAvailableTime" => SendWorkers(message.Chat),
+                "/workersByDiscipline" => Template(message.Chat),
+                "/nextAvailableTime" => Template(message.Chat),
                 var cmd when cmd == "/start" || cmd == "/menu" => AddMenuButtons(message.Chat),
                 _ => NotCommandMessage(message)
             });
@@ -159,7 +158,7 @@ public class Program
 
     #region Commands Handlers
 
-    private static async Task SendWorkers(Chat chat)
+    private static async Task Template(Chat chat)
     {
         await _botClient.SendTextMessageAsync(chat, "В разработке");
         await _botClient.SendStickerAsync(chat, _workInProgress);
@@ -167,13 +166,24 @@ public class Program
 
     private static async Task HandleDisciplines(Chat chat)
     {
+        
         var disciplines = await CoreRequests.GetDisciplines();
 
         var buttons = disciplines.Select(x => InlineKeyboardButton.WithCallbackData(x.Name, $"/seeDiscipline_{x.ID}")).ToList();
 
         var kbrdMarkup = new InlineKeyboardMarkup(buttons);
         await _botClient.SendTextMessageAsync(chat, "Доступные дисциплины:", replyMarkup: kbrdMarkup);
-        await _botClient.SendTextMessageAsync(chat, "Пизда");
+    }
+
+    private static async Task HandleWorkers(Chat chat)
+    {
+        var workers = await CoreRequests.GetWorkers();
+
+        var sb = new StringBuilder("Доступные исполнители:\n");
+
+        sb.Append(string.Join(",\n", workers.Select(x => x.UserName)));
+
+        await _botClient.SendTextMessageAsync(chat, sb.ToString());
     }
 
     #endregion
