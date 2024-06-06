@@ -1,21 +1,18 @@
 ﻿using BotAPILib;
+using BotHost.DTOs;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using static BotHost.DTOs.StickerDTO;
 
 namespace BotHost;
 
 public class Program
 {
     private static TelegramBotClient _botClient;
-    private static readonly InputFile _notCommandSticker = InputFile.FromString("CAACAgIAAxkBAAEF7QNmYI5H6op8eacWz-5U5QOSnNlB-QACsToAAg-IcEqRrCbJQ4Uv9TUE");
-    private static readonly InputFile _badCommandSticker = InputFile.FromString("CAACAgIAAxkBAAEF7QlmYI_dRm2j14b-2m1vRgOFKaBwxwAC4j0AAl-PaUqyeSmkhxNJCDUE");
-    private static readonly InputFile _nononoMisterFishSticker = InputFile.FromString("CAACAgIAAxkBAAEF7RtmYJKd7w_ZLJCbyjjSu1HM9HNFEgACbDcAAhBMkEpX9H_SMikrKjUE");
-    private static readonly InputFile _hello = InputFile.FromString("CAACAgIAAxkBAAEF7aZmYK-BDiV_pQahDj5OxOIlJRQulQACxjAAAluPkEqow5iNYORvuTUE");
-    private static readonly InputFile _workInProgress = InputFile.FromString("CAACAgIAAxkBAAEF7cBmYLMUFbjj-qDvJoOVzzxXOIDrJQAChEMAAp4daEqVzKX5VFmspjUE");
 
     private static List<string> _commandsAvailable = new()
     {
@@ -71,7 +68,7 @@ public class Program
             if (message.Entities.Length > 1)
             {
                 await _botClient.SendTextMessageAsync(message.Chat, "Не больше одного запроса за раз!");
-                await _botClient.SendStickerAsync(message.Chat, _nononoMisterFishSticker);
+                await _botClient.SendStickerAsync(message.Chat, StickerDTO.GetSticker(DTOs.StickerType.NononoMisterFish));
             }
             else
             {
@@ -86,9 +83,7 @@ public class Program
     {
         if (entity == null || entity.Type != MessageEntityType.BotCommand)
         {
-            await _botClient.SendStickerAsync(
-                chatId: message.Chat.Id,
-                sticker: _notCommandSticker
+            await _botClient.SendStickerAsync(message.Chat.Id, StickerDTO.GetSticker(DTOs.StickerType.NotCommand)
                 );
             await _botClient.SendTextMessageAsync(message.Chat, "Я тут для команд вообще-то!");
         }
@@ -113,7 +108,7 @@ public class Program
     private static async Task AddMenuButtons(Chat chat)
     {
         await AddButtons("Добро пожаловать в меню!", chat, 2, _commandsAvailable);
-        await _botClient.SendStickerAsync(chat, _hello);
+        await _botClient.SendStickerAsync(chat,DTOs.StickerDTO.GetSticker(DTOs.StickerType.Hello));
     }
 
     private static async Task AddButtons(string message, Chat chat, int rowsCount, IEnumerable<string> cmds)
@@ -135,10 +130,7 @@ public class Program
     private static async Task NotCommandMessage(Message message)
     {
         await _botClient.SendTextMessageAsync(message.Chat, "Какая-то хуета, а не команда");
-        await _botClient.SendStickerAsync(
-            chatId: message.Chat.Id,
-            sticker: _badCommandSticker
-            );
+        await _botClient.SendStickerAsync(message.Chat.Id, StickerDTO.GetSticker(DTOs.StickerType.BadCommand));
     }
 
     #region CallbackQuery
@@ -147,7 +139,7 @@ public class Program
         var disciplineID = int.Parse(data.Split('_')[1]);
         var res = await CoreRequests.GetWorkersByDiscipline(disciplineID);
 
-        var sb = new StringBuilder("Список доступных работников:\n");
+        var sb = new StringBuilder("Список доступных исполнителей:\n");
         var result = string.Join(",\n", res.Select(x => x.UserName));
         sb.Append(result);
         
@@ -160,8 +152,8 @@ public class Program
 
     private static async Task Template(Chat chat)
     {
-        await _botClient.SendTextMessageAsync(chat, "В разработке");
-        await _botClient.SendStickerAsync(chat, _workInProgress);
+        await _botClient.SendTextMessageAsync(chat, "В разработке!");
+        await _botClient.SendStickerAsync(chat,StickerDTO.GetSticker(DTOs.StickerType.WorkInProgress));
     }
 
     private static async Task HandleDisciplines(Chat chat)
