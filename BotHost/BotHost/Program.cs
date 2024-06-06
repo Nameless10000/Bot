@@ -138,7 +138,7 @@ public class Program
     {
         var disciplines = await CoreRequests.GetDisciplines();
 
-        var kbrdMarkup = new InlineKeyboardMarkup(disciplines.Select(x => new InlineKeyboardButton(x.Name)));
+        var kbrdMarkup = new InlineKeyboardMarkup(disciplines.Select(x => InlineKeyboardButton.WithCallbackData(x.Name, $"/seeDiscipline_{x.ID}")));
         await _botClient.SendTextMessageAsync(chat, "Доступные дисциплины:", replyMarkup: kbrdMarkup);
     }
 
