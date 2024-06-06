@@ -14,17 +14,17 @@ namespace BotApi.Services
             _botDbContext = botDbContext;
         }
 
-        public async Task<JsonResult> GetWorkersAsync()
+        public async Task<List<Worker>> GetWorkersAsync()
         {
             return new(await _botDbContext.Workers.ToListAsync());
         }
 
-        public async Task<JsonResult> GetDisciplinesAsync()
+        public async Task<List<Discipline>> GetDisciplinesAsync()
         {
             return new(await _botDbContext.Disciplines.ToListAsync());
         }
 
-        public async Task<JsonResult> GetWorkersByDisciplineAsync([FromQuery] int disciplineID)
+        public async Task<List<Worker>> GetWorkersByDisciplineAsync([FromQuery] int disciplineID)
         {
             return new(await _botDbContext.WorkerDisciplines
                 .Include(x => x.Worker)
