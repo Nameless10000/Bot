@@ -34,9 +34,9 @@ namespace BotAPILib
             return result;
         }
 
-        public static async Task<List<Worker>> GetWorkersByDiscipline()
+        public static async Task<List<Worker>> GetWorkersByDiscipline(int ID)
         {
-            var res = await _httpClient.GetAsync("http://localhost:5274/api/BotHostAPI/GetWorkersByDiscipline");
+            var res = await _httpClient.GetAsync($"http://localhost:5274/api/BotHostAPI/GetWorkersByDiscipline?disciplineID={ID}");
             var result = await res.Content.ReadFromJsonAsync<List<Worker>>();
             return result;
         }

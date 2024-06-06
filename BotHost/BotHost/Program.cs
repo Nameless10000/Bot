@@ -1,5 +1,7 @@
 ﻿using BotAPILib;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -51,20 +53,34 @@ public class Program
 
     private static async Task ProcedureMessageAsync(Update update)
     {
-        if (update.Message.Entities != null && update.Message.Entities.Any())
+        if (update.Message != null) await HandleMessage(update.Message);
+        else if (update.CallbackQuery != null) await HandleCallbackQuery(update.CallbackQuery, update.CallbackQuery.Message.Chat);
+    }
+
+    private static async Task HandleCallbackQuery(CallbackQuery callbackQuery, Chat chat)
+    {
+        await (callbackQuery.Data switch
         {
-            if (update.Message.Entities.Length > 1)
+            var data when data.StartsWith("/seeDiscipline_") => HandleDisciplineInfo(data, chat)
+        });
+    }
+
+    private static async Task HandleMessage(Message message)
+    {
+        if (message.Entities != null && message.Entities.Any())
+        {
+            if (message.Entities.Length > 1)
             {
-                await _botClient.SendTextMessageAsync(update.Message.Chat, "Не больше одного запроса за раз!");
-                await _botClient.SendStickerAsync(update.Message.Chat, _nononoMisterFishSticker);
+                await _botClient.SendTextMessageAsync(message.Chat, "Не больше одного запроса за раз!");
+                await _botClient.SendStickerAsync(message.Chat, _nononoMisterFishSticker);
             }
             else
             {
-                await ProcedureCommand(update.Message, update.Message.Entities[0]);
+                await ProcedureCommand(message, message.Entities[0]);
             }
         }
-        else if (update.Message != null)
-            await ProcedureCommand(update.Message);
+        else if (message != null)
+            await ProcedureCommand(message);
     }
 
     private static async Task ProcedureCommand (Message message, MessageEntity entity = null)
@@ -126,6 +142,21 @@ public class Program
             );
     }
 
+    #region CallbackQuery
+    private static async Task HandleDisciplineInfo(string data, Chat chat)
+    {
+        var disciplineID = int.Parse(data.Split('_')[1]);
+        var res = await CoreRequests.GetWorkersByDiscipline(disciplineID);
+
+        var sb = new StringBuilder("Список доступных работников:\n");
+        var result = string.Join(",\n", res.Select(x => x.UserName));
+        sb.Append(result);
+        
+        await _botClient.SendTextMessageAsync(chat, sb.ToString());
+    }
+
+    #endregion
+
     #region Commands Handlers
 
     private static async Task SendWorkers(Chat chat)
@@ -138,8 +169,11 @@ public class Program
     {
         var disciplines = await CoreRequests.GetDisciplines();
 
-        var kbrdMarkup = new InlineKeyboardMarkup(disciplines.Select(x => InlineKeyboardButton.WithCallbackData(x.Name, $"/seeDiscipline_{x.ID}")));
+        var buttons = disciplines.Select(x => InlineKeyboardButton.WithCallbackData(x.Name, $"/seeDiscipline_{x.ID}")).ToList();
+
+        var kbrdMarkup = new InlineKeyboardMarkup(buttons);
         await _botClient.SendTextMessageAsync(chat, "Доступные дисциплины:", replyMarkup: kbrdMarkup);
+        await _botClient.SendTextMessageAsync(chat, "Пизда");
     }
 
     #endregion
