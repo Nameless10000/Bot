@@ -11,6 +11,10 @@ namespace BotAPILib
 
         public static async Task<string> GetBotTokenAsync(string pass)
         {
+            _httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
+            _httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+            _httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "PostmanRuntime/7.37.3");
             var res = await _httpClient.GetAsync($"http://localhost:5274/api/BotHostAPI/GetToken?pwd={pass}");
             var token = await res.Content.ReadAsStringAsync();
             return token.Replace("\"", "");
