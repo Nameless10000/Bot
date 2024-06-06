@@ -1,4 +1,5 @@
 ﻿using BotAPILib;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -32,7 +33,7 @@ public class Program
 
     private static async Task MainAsync()
     {
-        var token = "6752858428:AAF4gAdbnkVzOeYnPlyaqbs02J0vYovFpdE"; //await GetBotTokenAsync("qwerty");
+        var token = await CoreRequests.GetBotTokenAsync("qwerty");
         _botClient = new TelegramBotClient(token);
         _botClient.StartReceiving(UpdateHandler, ErrorHandler);
         Console.ReadLine();

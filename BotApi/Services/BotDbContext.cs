@@ -2,6 +2,7 @@
 using BotApi.Models.DbEntities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Runtime.CompilerServices;
 
 namespace BotApi.Services
 {
@@ -17,8 +18,33 @@ namespace BotApi.Services
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Worker>().HasData(
+                new Worker { ID = 806499592, UserName = "znya05" }
+                );
 
-            // тут вставлять данные в БД через modelBuilder.Entity<>().HasData();
+            modelBuilder.Entity<User>().HasData(
+                new User { ID = 659615698, UserName = "Quazzik" }
+                );
+
+            modelBuilder.Entity<Discipline>().HasData(
+                new Discipline { ID=1, Name="Заработок на росте криптовалют в порно-играх"}
+                );
+
+            modelBuilder.Entity<WorkerDiscipline>().HasData(
+                new WorkerDiscipline { DisciplineID = 1, WorkerID = 806499592 }
+                );
+
+            modelBuilder.Entity<Appointment>().HasData(
+                new Appointment
+                {
+                    UserID = 659615698,
+                    WorkerID = 806499592,
+                    DisciplineID = 1,
+                    Longevity = TimeSpan.FromMinutes(60),
+                    StartsAt = DateTime.Now,
+                    Price = 1,
+                    Description="По, купону бесплатное первое занятие"
+                });
 
             base.OnModelCreating(modelBuilder);
         }
