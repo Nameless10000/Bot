@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using BotAPILib;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -83,34 +84,36 @@ public class Program
             await (command switch
             {
                 "/workers" => SendWorkers(message.Chat),
-                "/disciplines" => SendWorkers(message.Chat),
+                "/disciplines" => HandleDisciplines(message.Chat),
                 "/appoint" => _botClient.SendTextMessageAsync(message.Chat, "appoint"),
                 "/workersByDiscipline" => SendWorkers(message.Chat),
                 "/nextAvailableTime" => SendWorkers(message.Chat),
-                var cmd when cmd == "/start" || cmd == "/menu" => AddButtons(message.Chat),
+                var cmd when cmd == "/start" || cmd == "/menu" => AddMenuButtons(message.Chat),
                 _ => NotCommandMessage(message)
             });
         }
     }
 
-    private static async Task AddButtons(Chat chat)
+    private static async Task AddMenuButtons(Chat chat)
     {
-        var buttons1 = _commandsAvailable
-            .Take(_commandsAvailable.Count/2)
-            .Select(x => new KeyboardButton(x))
-            .ToList();
-
-        var buttons2 = _commandsAvailable
-            .Skip(_commandsAvailable.Count/2)
-            .TakeWhile(x => true)
-            .Select(x=>new KeyboardButton(x))
-            .ToList();
-
-        var buttons = new List<List<KeyboardButton>>() { buttons1, buttons2 };
-
-        var message = new ReplyKeyboardMarkup(buttons);
-        await _botClient.SendTextMessageAsync(chat, "Добро пожаловать в меню!", replyMarkup: message);
+        await AddButtons("Добро пожаловать в меню!", chat, 2, _commandsAvailable);
         await _botClient.SendStickerAsync(chat, _hello);
+    }
+
+    private static async Task AddButtons(string message, Chat chat, int rowsCount, IEnumerable<string> cmds)
+    {
+        var btns = cmds.Select(x => new KeyboardButton(x));
+        var btnsCount = btns.Count();
+        var btnsRows = new List<IEnumerable<KeyboardButton>>();
+
+        for (var i = 0; i < rowsCount; i++)
+        {
+            var iPart = btns.Skip(btnsCount * i / rowsCount).Take(btnsCount / rowsCount);
+            btnsRows.Add(iPart);
+        }
+
+        var kbrdMarkup = new ReplyKeyboardMarkup(btnsRows);
+        await _botClient.SendTextMessageAsync(chat, message, replyMarkup: kbrdMarkup);
     }
 
     private static async Task NotCommandMessage(Message message)
@@ -122,9 +125,21 @@ public class Program
             );
     }
 
+    #region Commands Handlers
+
     private static async Task SendWorkers(Chat chat)
     {
         await _botClient.SendTextMessageAsync(chat, "В разработке");
         await _botClient.SendStickerAsync(chat, _workInProgress);
     }
+
+    private static async Task HandleDisciplines(Chat chat)
+    {
+        var disciplines = await CoreRequests.GetDisciplines();
+
+        var kbrdMarkup = new InlineKeyboardMarkup(disciplines.Select(x => new InlineKeyboardButton(x.Name)));
+        await _botClient.SendTextMessageAsync(chat, "Доступные дисциплины:", replyMarkup: kbrdMarkup);
+    }
+
+    #endregion
 }
