@@ -18,7 +18,7 @@ namespace BotHost.DTOs
 
     public class StickerDTO
     {
-        private static readonly Dictionary<StickerType, InputFile> Stickers = new Dictionary<StickerType, InputFile>
+        private static readonly Dictionary<StickerType, InputFile> _stickers = new Dictionary<StickerType, InputFile>
     {
         { StickerType.NotCommand, InputFile.FromString("CAACAgIAAxkBAAEF7QNmYI5H6op8eacWz-5U5QOSnNlB-QACsToAAg-IcEqRrCbJQ4Uv9TUE") },
         { StickerType.BadCommand, InputFile.FromString("CAACAgIAAxkBAAEF7QlmYI_dRm2j14b-2m1vRgOFKaBwxwAC4j0AAl-PaUqyeSmkhxNJCDUE") },
@@ -29,7 +29,7 @@ namespace BotHost.DTOs
 
         public static InputFile GetSticker(StickerType stickerType)
         {
-            return Stickers.TryGetValue(stickerType, out var sticker) ? sticker : null;
+            return _stickers.TryGetValue(stickerType, out var sticker) ? sticker : null;
         }
     }
 }
