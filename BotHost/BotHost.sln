@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotAPILib", "BotAPILib\BotA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotApi", "..\BotApi\BotApi.csproj", "{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotLogger", "BotLogger\BotLogger.csproj", "{F362936B-65C0-4CFF-A601-E5FC0425FD5C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90B0205A-2C02-496F-B8A7-E59B8ED2F05C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F362936B-65C0-4CFF-A601-E5FC0425FD5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F362936B-65C0-4CFF-A601-E5FC0425FD5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F362936B-65C0-4CFF-A601-E5FC0425FD5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F362936B-65C0-4CFF-A601-E5FC0425FD5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

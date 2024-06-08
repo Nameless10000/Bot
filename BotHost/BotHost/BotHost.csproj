@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotAPILib\BotAPILib.csproj" />
+    <ProjectReference Include="..\BotLogger\BotLogger.csproj" />
   </ItemGroup>
 
 </Project>

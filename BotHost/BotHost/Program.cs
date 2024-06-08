@@ -6,6 +6,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using BotLogger;
 using static BotHost.DTOs.StickerFactory;
 
 namespace BotHost;
@@ -13,6 +14,7 @@ namespace BotHost;
 public class Program
 {
     private static TelegramBotClient _botClient;
+    private static LoggerLib _logger;
 
     private static List<string> _commandsAvailable = new()
     {
@@ -24,22 +26,27 @@ public class Program
         "/menu"
     };
 
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         MainAsync().GetAwaiter().GetResult();
     }
 
     private static async Task MainAsync()
     {
+        _logger = new();
+        _logger.ConfigureLogger();
+
         var token = await CoreRequests.GetBotTokenAsync("qwerty");
         _botClient = new TelegramBotClient(token);
         _botClient.StartReceiving(UpdateHandler, ErrorHandler);
         Console.ReadLine();
+
+        _logger.Dispose(); // Высвобождение ресурсов логгера
     }
 
     private static async Task ErrorHandler(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
-        
+       await _logger.Error(exception);
     }
 
     private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -63,6 +70,7 @@ public class Program
 
     private static async Task HandleMessage(Message message)
     {
+        await _logger.Info($"{message.From}: {message.Text}");
         if (message.Entities != null && message.Entities.Any())
         {
             if (message.Entities.Length > 1)
