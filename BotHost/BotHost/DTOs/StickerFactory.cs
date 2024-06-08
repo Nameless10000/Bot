@@ -16,7 +16,10 @@ namespace BotHost.DTOs
         WorkInProgress
     }
 
-    public class StickerDTO
+    // DTO - это объект для передачи данных (например, через HTTP REST запрос). Это скорее фабрика стикеров - StickerFactory
+    // Так же, класс, экземпляр которого не должна быть возможность создать, должен быть помечен как static (У таких классов нельзя вызвать конструктор через new()).
+    // Сама идея - топ
+    public static class StickerFactory
     {
         private static readonly Dictionary<StickerType, InputFile> _stickers = new Dictionary<StickerType, InputFile>
         {

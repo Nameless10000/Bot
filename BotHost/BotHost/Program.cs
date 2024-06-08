@@ -6,7 +6,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using static BotHost.DTOs.StickerDTO;
+using static BotHost.DTOs.StickerFactory;
 
 namespace BotHost;
 
@@ -68,7 +68,7 @@ public class Program
             if (message.Entities.Length > 1)
             {
                 await _botClient.SendTextMessageAsync(message.Chat, "Не больше одного запроса за раз!");
-                await _botClient.SendStickerAsync(message.Chat, StickerDTO.GetSticker(DTOs.StickerType.NononoMisterFish));
+                await _botClient.SendStickerAsync(message.Chat, GetSticker(DTOs.StickerType.NononoMisterFish));
             }
             else
             {
@@ -83,7 +83,7 @@ public class Program
     {
         if (entity == null || entity.Type != MessageEntityType.BotCommand)
         {
-            await _botClient.SendStickerAsync(message.Chat.Id, StickerDTO.GetSticker(DTOs.StickerType.NotCommand)
+            await _botClient.SendStickerAsync(message.Chat.Id, GetSticker(DTOs.StickerType.NotCommand)
                 );
             await _botClient.SendTextMessageAsync(message.Chat, "Я тут для команд вообще-то!");
         }
@@ -108,7 +108,7 @@ public class Program
     private static async Task AddMenuButtons(Chat chat)
     {
         await AddButtons("Добро пожаловать в меню!", chat, 2, _commandsAvailable);
-        await _botClient.SendStickerAsync(chat,DTOs.StickerDTO.GetSticker(DTOs.StickerType.Hello));
+        await _botClient.SendStickerAsync(chat, GetSticker(DTOs.StickerType.Hello));
     }
 
     private static async Task AddButtons(string message, Chat chat, int rowsCount, IEnumerable<string> cmds)
@@ -130,7 +130,7 @@ public class Program
     private static async Task NotCommandMessage(Message message)
     {
         await _botClient.SendTextMessageAsync(message.Chat, "Какая-то хуета, а не команда");
-        await _botClient.SendStickerAsync(message.Chat.Id, StickerDTO.GetSticker(DTOs.StickerType.BadCommand));
+        await _botClient.SendStickerAsync(message.Chat.Id, GetSticker(DTOs.StickerType.BadCommand));
     }
 
     #region CallbackQuery
@@ -153,7 +153,7 @@ public class Program
     private static async Task Template(Chat chat)
     {
         await _botClient.SendTextMessageAsync(chat, "В разработке!");
-        await _botClient.SendStickerAsync(chat,StickerDTO.GetSticker(DTOs.StickerType.WorkInProgress));
+        await _botClient.SendStickerAsync(chat,StickerFactory.GetSticker(DTOs.StickerType.WorkInProgress));
     }
 
     private static async Task HandleDisciplines(Chat chat)
