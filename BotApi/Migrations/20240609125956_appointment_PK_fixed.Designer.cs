@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BotApi.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20240605184944_FKs_Added")]
-    partial class FKs_Added
+    [Migration("20240609125956_appointment_PK_fixed")]
+    partial class appointment_PK_fixed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,8 +36,10 @@ namespace BotApi.Migrations
                     b.Property<int>("DisciplineID")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<TimeSpan>("Longevity")
@@ -46,16 +48,25 @@ namespace BotApi.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<DateTime>("StartsAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("UserID", "WorkerID", "DisciplineID");
+                    b.HasKey("UserID", "WorkerID", "DisciplineID", "StartsAt");
 
                     b.HasIndex("DisciplineID");
 
                     b.HasIndex("WorkerID");
 
                     b.ToTable("Appointments");
+
+                    b.HasData(
+                        new
+                        {
+                            UserID = 659615698L,
+                            WorkerID = 806499592L,
+                            DisciplineID = 1,
+                            StartsAt = new DateTime(2024, 6, 9, 17, 59, 56, 90, DateTimeKind.Local).AddTicks(6926),
+                            Description = "По, купону бесплатное первое занятие",
+                            Longevity = new TimeSpan(0, 1, 0, 0, 0),
+                            Price = 1m
+                        });
                 });
 
             modelBuilder.Entity("BotApi.Models.DbEntities.Discipline", b =>
@@ -73,6 +84,13 @@ namespace BotApi.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Disciplines");
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 1,
+                            Name = "Заработок на росте криптовалют в порно-играх"
+                        });
                 });
 
             modelBuilder.Entity("BotApi.Models.DbEntities.User", b =>
@@ -89,6 +107,13 @@ namespace BotApi.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 659615698L,
+                            UserName = "Quazzik"
+                        });
                 });
 
             modelBuilder.Entity("BotApi.Models.DbEntities.Worker", b =>
@@ -106,6 +131,13 @@ namespace BotApi.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Workers");
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 806499592L,
+                            UserName = "znya05"
+                        });
                 });
 
             modelBuilder.Entity("BotApi.Models.DbEntities.WorkerDiscipline", b =>
@@ -121,6 +153,13 @@ namespace BotApi.Migrations
                     b.HasIndex("DisciplineID");
 
                     b.ToTable("WorkerDisciplines");
+
+                    b.HasData(
+                        new
+                        {
+                            WorkerID = 806499592L,
+                            DisciplineID = 1
+                        });
                 });
 
             modelBuilder.Entity("BotApi.Models.DbEntities.Appointment", b =>

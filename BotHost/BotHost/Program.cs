@@ -7,6 +7,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using BotLogger;
 using static BotHost.StickerFactory;
+using BotApi.Models.DTOs;
 
 namespace BotHost;
 
@@ -19,9 +20,6 @@ public class Program
     {
         "/workers",
         "/disciplines",
-        "/appoint",
-        "/workersByDiscipline",
-        "/nextAvailableTime",
         "/menu"
     };
 
@@ -63,7 +61,9 @@ public class Program
     {
         await (callbackQuery.Data switch
         {
-            var data when data.StartsWith("/seeDiscipline_") => HandleDisciplineInfo(data, chat)
+            var data when data.StartsWith("/seeDiscipline_") => HandleWorkersWithTime(data, chat),
+            var data when data.StartsWith("/selectWorker_") => HandleTimePicker(data, chat),
+            var data when data.StartsWith("/selectedTime_") => HandleAppoint(data, chat)
         });
     }
 
@@ -103,24 +103,11 @@ public class Program
             {
                 "/workers" => HandleWorkers(message.Chat),
                 "/disciplines" => HandleDisciplines(message.Chat),
-                "/appoint" => _botClient.SendTextMessageAsync(message.Chat, "appoint"),
-                "/workersByDiscipline" => Template(message.Chat),
-                "/nextAvailableTime" => Template(message.Chat),
-                "/start" => AddUserScenario(message.Chat),
+                "/start" => HandleAddingUser(message.Chat),
                 "/menu" => AddMenuButtons(message.Chat),
                 _ => NotCommandMessage(message)
             });
         }
-    }
-
-    private static async Task AddUserScenario(Chat chat)
-    {
-        var res = await CoreRequests.AddUser(chat.Id ,$"{chat.Username}");
-
-        await AddMenuButtons(chat);
-
-        await _botClient.SendTextMessageAsync(chat, res ? "Пользователь успешно зарегестрирован" : "Ошибка регистрации");
-        await _botClient.SendStickerAsync(chat, res ? GetSticker(StickerType.SuccessReg) : GetSticker(StickerType.FailureReg));
     }
 
     private static async Task AddMenuButtons(Chat chat)
@@ -151,27 +138,90 @@ public class Program
         await _botClient.SendStickerAsync(message.Chat.Id, GetSticker(StickerType.BadCommand));
     }
 
-    #region CallbackQuery
-    private static async Task HandleDisciplineInfo(string data, Chat chat)
+    private static async Task<InlineKeyboardMarkup> GenerateTimeButtons(int from, int to, long workerID, string disciplineID)
     {
-        var disciplineID = int.Parse(data.Split('_')[1]);
-        var res = await CoreRequests.GetWorkersByDiscipline(disciplineID);
-
-        var sb = new StringBuilder("Список доступных исполнителей:\n");
-        var result = string.Join(",\n", res.Select(x => x.UserName));
-        sb.Append(result);
-        
-        await _botClient.SendTextMessageAsync(chat, sb.ToString());
+        var timeList = new List<List<InlineKeyboardButton>>();
+        for (var hour = from; hour<to;hour++)
+        {
+            var mph = new List<InlineKeyboardButton>();
+            for (var minute = 0; minute < 60; minute += 15)
+            {
+                mph.Add(InlineKeyboardButton
+                    .WithCallbackData($"{hour}:{(minute.ToString()=="0" ? "00" : minute)}",$"/selectedTime_{hour}_{minute}_{workerID}_{disciplineID}"));
+            }
+            timeList.Add(mph);
+        }
+        var kbrdMarkup = new InlineKeyboardMarkup(timeList);
+        return kbrdMarkup;
     }
 
+    #region CallbackQuery
+    private static async Task HandleWorkersWithTime(string data, Chat chat)
+    {
+        int disciplineID = int.Parse(data.Split('_')[1]);
+        var workersWithTimes = await CoreRequests.GetNextAvailableTime(disciplineID);
+
+        var buttons = workersWithTimes
+            .Select(x => InlineKeyboardButton
+                .WithCallbackData($"{x.Worker.UserName} {x.NextAvailableTime:g}", $"/selectWorker_{x.Worker.ID}_{x.Worker.UserName}_{disciplineID}"))
+            .ToList();
+        var kbrdMarkup = new InlineKeyboardMarkup(buttons);
+
+        await _botClient.SendTextMessageAsync(chat, "Ближайшее доступное время для записи. Выберите работника для бронирования занятия: \n", replyMarkup: kbrdMarkup);
+    }
+
+    private static async Task HandleTimePicker(string data, Chat chat)
+    {
+        var splittedData = data.Split('_');
+        var workerID = int.Parse(splittedData[1]);
+        var workerName = splittedData[2];
+        var kbrdMarkup = await GenerateTimeButtons(10, 18, workerID, splittedData[3]);
+
+        await _botClient.SendTextMessageAsync(chat, $"Выбран исполнитель {workerName}, выберите время:\n", replyMarkup: kbrdMarkup);
+    }
+
+    private static async Task HandleAppoint(string data, Chat chat)
+    {
+        var splittedData = data.Split('_');
+        var hour = int.Parse(splittedData[1]);
+        var minute = int.Parse(splittedData[2]);
+        var workerID = int.Parse(splittedData[3]);
+        var disciplineID = int.Parse(splittedData[4]);
+
+        var now = DateTime.Now;
+        var selectedTime = new DateTime(now.Year, now.Month, now.Day, hour, minute, 0);
+
+        AppointmentCreatingDTO dto = new AppointmentCreatingDTO()
+        {
+            Longevity = TimeSpan.FromHours(1),
+            StartsAt = selectedTime,
+            WorkerID = workerID,
+            UserID = chat.Id,
+            DisciplineID = disciplineID
+        };
+
+        var a = await CoreRequests.AppointToWorkerAsync(dto);
+        await _botClient.SendTextMessageAsync(chat, a ? "Время успешно забронировано" : "Ошибка - время забронировано");
+        
+    }
     #endregion
 
     #region Commands Handlers
 
+    private static async Task HandleAddingUser(Chat chat)
+    {
+        var res = await CoreRequests.AddUser(chat.Id, $"{chat.Username}");
+
+        await AddMenuButtons(chat);
+
+        await _botClient.SendTextMessageAsync(chat, res ? "Пользователь успешно зарегестрирован" : "Ошибка регистрации");
+        await _botClient.SendStickerAsync(chat, res ? GetSticker(StickerType.SuccessReg) : GetSticker(StickerType.FailureReg));
+    }
+
     private static async Task Template(Chat chat)
     {
         await _botClient.SendTextMessageAsync(chat, "В разработке!");
-        await _botClient.SendStickerAsync(chat,StickerFactory.GetSticker(StickerType.WorkInProgress));
+        await _botClient.SendStickerAsync(chat, GetSticker(StickerType.WorkInProgress));
     }
 
     private static async Task HandleDisciplines(Chat chat)

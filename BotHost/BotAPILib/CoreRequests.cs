@@ -42,19 +42,27 @@ namespace BotAPILib
             return result;
         }
 
-        public static async Task<List<NextTimeDTO>> GetNextAvailableTime(int ID, string Username)
+        public static async Task<List<NextTimeDTO>> GetNextAvailableTime(int disciplineID)
         {
-            var res = await _httpClient.GetAsync($"http://localhost:5274/api/BotHostAPI/GetNextAvailableTime?id={ID}");
-            var result = await res.Content.ReadFromJsonAsync<List<NextTimeDTO>>();
-            return result;
+            var cont = JsonContent.Create(new NextAvailableRequestParams { DisciplineID=disciplineID});
+            var response = await _httpClient.PostAsync($"http://localhost:5274/api/BotHostAPI/GetNextAvailableTime", cont);
+            var nextTimes = await response.Content.ReadFromJsonAsync<List<NextTimeDTO>>();
+            return nextTimes;
         }
 
         public static async Task<bool> AddUser(long id, string username)
         {
             var user = new UserAddDTO() { ID = id, UserName=username};
             var cont = JsonContent.Create(user);
-            var res = await _httpClient.PostAsync("http://localhost:5274/api/BotHostAPI/AddUser", cont);
-            return res.IsSuccessStatusCode;
+            var response = await _httpClient.PostAsync("http://localhost:5274/api/BotHostAPI/AddUser", cont);
+            return response.IsSuccessStatusCode;
+        }
+
+        public static async Task<bool> AppointToWorkerAsync(AppointmentCreatingDTO dto)
+        {
+            var cont = JsonContent.Create(dto);
+            var response = await _httpClient.PostAsync("http://localhost:5274/api/BotHostAPI/AppointToWorker", cont);
+            return response.IsSuccessStatusCode;
         }
     }
 }

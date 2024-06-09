@@ -33,6 +33,9 @@ namespace BotApi.Migrations
                     b.Property<int>("DisciplineID")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
@@ -42,10 +45,7 @@ namespace BotApi.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<DateTime>("StartsAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("UserID", "WorkerID", "DisciplineID");
+                    b.HasKey("UserID", "WorkerID", "DisciplineID", "StartsAt");
 
                     b.HasIndex("DisciplineID");
 
@@ -59,10 +59,10 @@ namespace BotApi.Migrations
                             UserID = 659615698L,
                             WorkerID = 806499592L,
                             DisciplineID = 1,
+                            StartsAt = new DateTime(2024, 6, 9, 17, 59, 56, 90, DateTimeKind.Local).AddTicks(6926),
                             Description = "По, купону бесплатное первое занятие",
                             Longevity = new TimeSpan(0, 1, 0, 0, 0),
-                            Price = 1m,
-                            StartsAt = new DateTime(2024, 6, 6, 16, 30, 8, 637, DateTimeKind.Local).AddTicks(161)
+                            Price = 1m
                         });
                 });
 

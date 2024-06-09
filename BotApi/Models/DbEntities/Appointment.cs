@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BotApi.Models.DbEntities
 {
-    [PrimaryKey(nameof(UserID), nameof(WorkerID), nameof(DisciplineID))]
+    [PrimaryKey(nameof(UserID), nameof(WorkerID), nameof(DisciplineID), nameof(StartsAt))]
     public class Appointment
     {
         public long UserID { get; set; }
