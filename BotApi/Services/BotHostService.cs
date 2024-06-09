@@ -89,7 +89,7 @@ namespace BotApi.Services
 
         public async Task<bool> AddUserAsync(UserAddDTO addDTO)
         {
-            if (!await _botDbContext.Users.AnyAsync(x => x.ID == addDTO.ID))
+            if (await _botDbContext.Users.AnyAsync(x => x.ID == addDTO.ID))
                 return false;
 
             var newUser = new User

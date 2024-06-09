@@ -1,5 +1,4 @@
 ﻿using BotAPILib;
-using BotHost.DTOs;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using System.Text;
 using Telegram.Bot;
@@ -7,7 +6,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using BotLogger;
-using static BotHost.DTOs.StickerFactory;
+using static BotHost.StickerFactory;
 
 namespace BotHost;
 
@@ -76,7 +75,7 @@ public class Program
             if (message.Entities.Length > 1)
             {
                 await _botClient.SendTextMessageAsync(message.Chat, "Не больше одного запроса за раз!");
-                await _botClient.SendStickerAsync(message.Chat, GetSticker(DTOs.StickerType.NononoMisterFish));
+                await _botClient.SendStickerAsync(message.Chat, GetSticker(StickerType.NononoMisterFish));
             }
             else
             {
@@ -91,7 +90,7 @@ public class Program
     {
         if (entity == null || entity.Type != MessageEntityType.BotCommand)
         {
-            await _botClient.SendStickerAsync(message.Chat.Id, GetSticker(DTOs.StickerType.NotCommand)
+            await _botClient.SendStickerAsync(message.Chat.Id, GetSticker(StickerType.NotCommand)
                 );
             await _botClient.SendTextMessageAsync(message.Chat, "Я тут для команд вообще-то!");
         }
@@ -107,16 +106,27 @@ public class Program
                 "/appoint" => _botClient.SendTextMessageAsync(message.Chat, "appoint"),
                 "/workersByDiscipline" => Template(message.Chat),
                 "/nextAvailableTime" => Template(message.Chat),
-                var cmd when cmd == "/start" || cmd == "/menu" => AddMenuButtons(message.Chat),
+                "/start" => AddUserScenario(message.Chat),
+                "/menu" => AddMenuButtons(message.Chat),
                 _ => NotCommandMessage(message)
             });
         }
     }
 
+    private static async Task AddUserScenario(Chat chat)
+    {
+        var res = await CoreRequests.AddUser(chat.Id ,$"{chat.Username}");
+
+        await AddMenuButtons(chat);
+
+        await _botClient.SendTextMessageAsync(chat, res ? "Пользователь успешно зарегестрирован" : "Ошибка регистрации");
+        await _botClient.SendStickerAsync(chat, res ? GetSticker(StickerType.SuccessReg) : GetSticker(StickerType.FailureReg));
+    }
+
     private static async Task AddMenuButtons(Chat chat)
     {
         await AddButtons("Добро пожаловать в меню!", chat, 2, _commandsAvailable);
-        await _botClient.SendStickerAsync(chat, GetSticker(DTOs.StickerType.Hello));
+        await _botClient.SendStickerAsync(chat, GetSticker(StickerType.Hello));
     }
 
     private static async Task AddButtons(string message, Chat chat, int rowsCount, IEnumerable<string> cmds)
@@ -138,7 +148,7 @@ public class Program
     private static async Task NotCommandMessage(Message message)
     {
         await _botClient.SendTextMessageAsync(message.Chat, "Какая-то хуета, а не команда");
-        await _botClient.SendStickerAsync(message.Chat.Id, GetSticker(DTOs.StickerType.BadCommand));
+        await _botClient.SendStickerAsync(message.Chat.Id, GetSticker(StickerType.BadCommand));
     }
 
     #region CallbackQuery
@@ -161,7 +171,7 @@ public class Program
     private static async Task Template(Chat chat)
     {
         await _botClient.SendTextMessageAsync(chat, "В разработке!");
-        await _botClient.SendStickerAsync(chat,StickerFactory.GetSticker(DTOs.StickerType.WorkInProgress));
+        await _botClient.SendStickerAsync(chat,StickerFactory.GetSticker(StickerType.WorkInProgress));
     }
 
     private static async Task HandleDisciplines(Chat chat)

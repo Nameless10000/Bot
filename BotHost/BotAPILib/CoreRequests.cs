@@ -1,5 +1,6 @@
 ﻿using BotApi.Models.DbEntities;
-using BotAPILib.DTOs;
+using BotApi.Models.DTOs;
+using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -41,11 +42,19 @@ namespace BotAPILib
             return result;
         }
 
-        public static async Task<List<NextTimeDTO>> GetNextAvailableTime()
+        public static async Task<List<NextTimeDTO>> GetNextAvailableTime(int ID, string Username)
         {
-            var res = await _httpClient.GetAsync("http://localhost:5274/api/BotHostAPI/GetNextAvailableTime");
+            var res = await _httpClient.GetAsync($"http://localhost:5274/api/BotHostAPI/GetNextAvailableTime?id={ID}");
             var result = await res.Content.ReadFromJsonAsync<List<NextTimeDTO>>();
             return result;
+        }
+
+        public static async Task<bool> AddUser(long id, string username)
+        {
+            var user = new UserAddDTO() { ID = id, UserName=username};
+            var cont = JsonContent.Create(user);
+            var res = await _httpClient.PostAsync("http://localhost:5274/api/BotHostAPI/AddUser", cont);
+            return res.IsSuccessStatusCode;
         }
     }
 }
