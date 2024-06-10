@@ -66,5 +66,11 @@ namespace BotApi.Controllers
         {
             return await _botHostService.AddUserAsync(addDTO) ? Ok() : BadRequest();
         }
+
+        [HttpGet]
+        public async Task<JsonResult> GetAppointments([FromQuery] long userID)
+        {
+            return new(await _botHostService.GetAppointmentsAsync(userID));
+        }
     }
 }

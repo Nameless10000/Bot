@@ -6,21 +6,24 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using BotLogger;
-using static BotHost.StickerFactory;
 using BotApi.Models.DTOs;
+using static BotHost.StickerFactory;
+using static System.Math;
 
 namespace BotHost;
 
 public class Program
 {
+    private const int LAST_APPOINTMENT_HOUR = 18;
     private static TelegramBotClient _botClient;
     private static LoggerLib _logger;
 
     private static List<string> _commandsAvailable = new()
     {
-        "/workers",
         "/disciplines",
-        "/menu"
+        "/menu",
+        "/appointments",
+        "/cancelAppointment"
     };
 
     private static void Main(string[] args)
@@ -101,10 +104,11 @@ public class Program
 
             await (command switch
             {
-                "/workers" => HandleWorkers(message.Chat),
                 "/disciplines" => HandleDisciplines(message.Chat),
                 "/start" => HandleAddingUser(message.Chat),
                 "/menu" => AddMenuButtons(message.Chat),
+                "/appointments" => HandleSeeAppointments(message.Chat),
+                "/cancelAppointment" => Template(message.Chat),
                 _ => NotCommandMessage(message)
             });
         }
@@ -175,9 +179,12 @@ public class Program
         var splittedData = data.Split('_');
         var workerID = int.Parse(splittedData[1]);
         var workerName = splittedData[2];
-        var kbrdMarkup = await GenerateTimeButtons(10, 18, workerID, splittedData[3]);
 
-        await _botClient.SendTextMessageAsync(chat, $"Выбран исполнитель {workerName}, выберите время:\n", replyMarkup: kbrdMarkup);
+        var currentHour = DateTime.Now.Hour;
+
+        var kbrdMarkup = await GenerateTimeButtons(currentHour + 1, LAST_APPOINTMENT_HOUR, workerID, splittedData[3]);
+        await _botClient.SendTextMessageAsync(chat, currentHour < LAST_APPOINTMENT_HOUR ? $"Выбран исполнитель {workerName}, выберите время:\n" : "Уже поздно, запишитесь завтра", replyMarkup: currentHour < LAST_APPOINTMENT_HOUR ? kbrdMarkup : null);
+        await _botClient.SendStickerAsync(chat, GetSticker(currentHour < LAST_APPOINTMENT_HOUR ? StickerType.HasTimeToAppoint : StickerType.NoTimeToAppoint));
     }
 
     private static async Task HandleAppoint(string data, Chat chat)
@@ -202,11 +209,30 @@ public class Program
 
         var a = await CoreRequests.AppointToWorkerAsync(dto);
         await _botClient.SendTextMessageAsync(chat, a ? "Время успешно забронировано" : "Ошибка - время забронировано");
+        await _botClient.SendStickerAsync(chat, a ? GetSticker(StickerType.AppointmentSuccess) : GetSticker(StickerType.AppointmentFailure));
         
     }
     #endregion
 
     #region Commands Handlers
+    private static async Task HandleSeeAppointments(Chat chat)
+    {
+        var appointments = await CoreRequests.GetAppointments(chat.Id);
+
+        if (appointments == null || appointments.Count == 0)
+        {
+            await _botClient.SendTextMessageAsync(chat, "У вас нет ни одной записи!");
+            await _botClient.SendStickerAsync(chat, GetSticker(StickerType.GotAppointmentsNo));
+        }
+        else
+        {
+            var sb = new StringBuilder("Ваши записи: \n");
+            sb.Append(string.Join(",\n", appointments.Select(x => $"{x.Discipline} у {x.Worker.UserName} в {x.StartsAt:g} за {Round(x.Price,2)}₽")));
+
+            await _botClient.SendTextMessageAsync(chat, sb.ToString());
+            await _botClient.SendStickerAsync(chat, GetSticker(StickerType.GotAppointmentsAny));
+        }
+    }
 
     private static async Task HandleAddingUser(Chat chat)
     {
@@ -215,7 +241,7 @@ public class Program
         await AddMenuButtons(chat);
 
         await _botClient.SendTextMessageAsync(chat, res ? "Пользователь успешно зарегестрирован" : "Ошибка регистрации");
-        await _botClient.SendStickerAsync(chat, res ? GetSticker(StickerType.SuccessReg) : GetSticker(StickerType.FailureReg));
+        await _botClient.SendStickerAsync(chat, res ? GetSticker(StickerType.RegistrationSuccess) : GetSticker(StickerType.RegistrationFailure));
     }
 
     private static async Task Template(Chat chat)
@@ -233,17 +259,7 @@ public class Program
 
         var kbrdMarkup = new InlineKeyboardMarkup(buttons);
         await _botClient.SendTextMessageAsync(chat, "Доступные дисциплины:", replyMarkup: kbrdMarkup);
-    }
-
-    private static async Task HandleWorkers(Chat chat)
-    {
-        var workers = await CoreRequests.GetWorkers();
-
-        var sb = new StringBuilder("Доступные исполнители:\n");
-
-        sb.Append(string.Join(",\n", workers.Select(x => x.UserName)));
-
-        await _botClient.SendTextMessageAsync(chat, sb.ToString());
+        await _botClient.SendStickerAsync(chat, GetSticker(StickerType.Disciplines));
     }
 
     #endregion

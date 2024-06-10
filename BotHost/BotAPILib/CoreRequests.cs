@@ -64,5 +64,12 @@ namespace BotAPILib
             var response = await _httpClient.PostAsync("http://localhost:5274/api/BotHostAPI/AppointToWorker", cont);
             return response.IsSuccessStatusCode;
         }
+
+        public static async Task<List<Appointment>> GetAppointments(long userID)
+        {
+            var response = await _httpClient.GetAsync($"http://localhost:5274/api/BotHostAPI/GetAppointments?userID={userID}");
+            var appointments = await response.Content.ReadFromJsonAsync<List<Appointment>>();
+            return appointments;
+        }
     }
 }

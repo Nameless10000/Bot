@@ -24,7 +24,7 @@ namespace BotApi.Services
             return new(await _botDbContext.Disciplines.ToListAsync());
         }
 
-        public async Task<List<Worker>> GetWorkersByDisciplineAsync([FromQuery] int disciplineID)
+        public async Task<List<Worker>> GetWorkersByDisciplineAsync(int disciplineID)
         {
             return new(await _botDbContext.WorkerDisciplines
                 .Include(x => x.Worker)
@@ -33,8 +33,15 @@ namespace BotApi.Services
                 .ToListAsync());
         }
 
-        public async Task<List<NextTimeDTO>> GetNextAvailableTimeAsync([FromBody] NextAvailableRequestParams requestParams)
+        public async Task<List<NextTimeDTO>> GetNextAvailableTimeAsync(NextAvailableRequestParams requestParams)
         {
+            var workers = (await GetWorkersByDisciplineAsync(requestParams.DisciplineID))
+                .Select(x => new NextTimeDTO
+                {
+                    Worker = x,
+                    NextAvailableTime = DateTime.Now,
+                }).ToList();
+
             var nextTimeQuery = _botDbContext.Appointments
                 .Include(x => x.Worker)
                 .Where(x => x.DisciplineID == requestParams.DisciplineID)
@@ -47,17 +54,16 @@ namespace BotApi.Services
 
             var now = DateTime.Now;
 
-            var nextTime = await nextTimeQuery.ToListAsync();
-
-            return new(nextTime
+            var nextTime = (await nextTimeQuery.ToListAsync())
                 .Select(x => new NextTimeDTO
                 {
                     Worker = x.Worker,
-                    NextAvailableTime = x.StartsAt - now < TimeSpan.FromMinutes(30)
-                        ? x.StartsAt + x.Longevity + TimeSpan.FromMinutes(15)
-                        : now
-                })
-                .ToList());
+                    NextAvailableTime = x.StartsAt - now < TimeSpan.FromMinutes(75)
+                            ? x.StartsAt + x.Longevity + TimeSpan.FromMinutes(15)
+                            : now
+                }).ToList();
+
+            return nextTime.Concat(workers).DistinctBy(x => x.Worker.ID).ToList();
         }
 
         public async Task<bool> AppointToWorkerAsync(AppointmentCreatingDTO creatingDTO)
@@ -101,6 +107,16 @@ namespace BotApi.Services
             await _botDbContext.Users.AddAsync(newUser);
             await _botDbContext.SaveChangesAsync();
             return true;
-        } 
+        }
+
+        public async Task<List<Appointment>> GetAppointmentsAsync(long userID)
+        {
+            var appointments = await _botDbContext.Appointments
+                .Include(x => x.Worker)
+                .Include(x => x.User)
+                .Where(x => x.UserID == userID)
+                .ToListAsync();
+            return appointments;
+        }
     }
 }
