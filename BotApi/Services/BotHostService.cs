@@ -72,10 +72,10 @@ namespace BotApi.Services
             var isWorkerAvailable = !(await _botDbContext.Appointments
                 .Where(x => x.WorkerID == creatingDTO.WorkerID)
                 .ToListAsync())
-                .Any(x => (creatingDTO.StartsAt < x.StartsAt + x.Longevity 
-                && creatingDTO.StartsAt > x.StartsAt)
-                || (creatingDTO.StartsAt + creatingDTO.Longevity < x.StartsAt + x.Longevity 
-                && creatingDTO.StartsAt + creatingDTO.Longevity > x.StartsAt));
+                .Any(x => (creatingDTO.StartsAt <= x.StartsAt + x.Longevity 
+                    && creatingDTO.StartsAt >= x.StartsAt)
+                    || (creatingDTO.StartsAt + creatingDTO.Longevity <= x.StartsAt + x.Longevity 
+                    && creatingDTO.StartsAt + creatingDTO.Longevity >= x.StartsAt));
 
             if (!isWorkerAvailable)
                 return false;

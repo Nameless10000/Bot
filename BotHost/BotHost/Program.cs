@@ -15,7 +15,8 @@ namespace BotHost;
 
 public class Program
 {
-    private const int LAST_APPOINTMENT_HOUR = 18;
+    private const int LAST_APPOINTMENT_HOUR = 24;
+    private const int FIRST_APPOINTMENT_HOUR = 10;
     private static TelegramBotClient _botClient;
     private static LoggerLib _logger;
 
@@ -137,7 +138,7 @@ public class Program
 
         for (var i = 0; i < rowsCount; i++)
         {
-            var iPart = btns.Skip(btnsCount * i / rowsCount).Take(btnsCount / rowsCount);
+            var iPart = i==rowsCount-1 ? btns.Skip(btnsCount * i / rowsCount).TakeWhile(x => true) : btns.Skip(btnsCount * i / rowsCount).Take(btnsCount / rowsCount);
             btnsRows.Add(iPart);
         }
 
@@ -201,7 +202,6 @@ public class Program
         var splittedData = data.Split('_');
         var appointmentID = int.Parse(splittedData[1]);
 
-
         var res = await CoreRequests.DeleteAppointmentAsync(appointmentID);
     }
 
@@ -225,7 +225,9 @@ public class Program
         var workerID = int.Parse(splittedData[1]);
         var workerName = splittedData[2];
 
-        var currentHour = DateTime.Now.Hour;
+        var currentHour = DateTime.Now.Hour > FIRST_APPOINTMENT_HOUR 
+            ? DateTime.Now.Hour 
+            : FIRST_APPOINTMENT_HOUR;
 
         var kbrdMarkup = await GenerateTimeButtons(currentHour + 1, LAST_APPOINTMENT_HOUR, workerID, splittedData[3]);
         await _botClient.SendTextMessageAsync(chat, currentHour < LAST_APPOINTMENT_HOUR ? $"Выбран исполнитель {workerName}, выберите время:\n" : "Уже поздно, запишитесь завтра", replyMarkup: currentHour < LAST_APPOINTMENT_HOUR ? kbrdMarkup : null);
