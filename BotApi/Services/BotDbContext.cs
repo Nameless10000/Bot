@@ -34,18 +34,6 @@ namespace BotApi.Services
                 new WorkerDiscipline { DisciplineID = 1, WorkerID = 806499592 }
                 );
 
-            modelBuilder.Entity<Appointment>().HasData(
-                new Appointment
-                {
-                    UserID = 659615698,
-                    WorkerID = 806499592,
-                    DisciplineID = 1,
-                    Longevity = TimeSpan.FromMinutes(60),
-                    StartsAt = DateTime.Now,
-                    Price = 1,
-                    Description="По, купону бесплатное первое занятие"
-                });
-
             base.OnModelCreating(modelBuilder);
         }
     }

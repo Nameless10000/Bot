@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BotApi.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20240609125956_appointment_PK_fixed")]
-    partial class appointment_PK_fixed
+    [Migration("20240611150237_appointmentExpantion")]
+    partial class appointmentExpantion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,20 +27,20 @@ namespace BotApi.Migrations
 
             modelBuilder.Entity("BotApi.Models.DbEntities.Appointment", b =>
                 {
-                    b.Property<long>("UserID")
-                        .HasColumnType("bigint");
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Property<long>("WorkerID")
-                        .HasColumnType("bigint");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
 
                     b.Property<int>("DisciplineID")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StartsAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext");
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<TimeSpan>("Longevity")
                         .HasColumnType("time(6)");
@@ -48,25 +48,24 @@ namespace BotApi.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(65,30)");
 
-                    b.HasKey("UserID", "WorkerID", "DisciplineID", "StartsAt");
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long>("UserID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
 
                     b.HasIndex("DisciplineID");
+
+                    b.HasIndex("UserID");
 
                     b.HasIndex("WorkerID");
 
                     b.ToTable("Appointments");
-
-                    b.HasData(
-                        new
-                        {
-                            UserID = 659615698L,
-                            WorkerID = 806499592L,
-                            DisciplineID = 1,
-                            StartsAt = new DateTime(2024, 6, 9, 17, 59, 56, 90, DateTimeKind.Local).AddTicks(6926),
-                            Description = "По, купону бесплатное первое занятие",
-                            Longevity = new TimeSpan(0, 1, 0, 0, 0),
-                            Price = 1m
-                        });
                 });
 
             modelBuilder.Entity("BotApi.Models.DbEntities.Discipline", b =>

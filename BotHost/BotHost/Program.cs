@@ -24,7 +24,6 @@ public class Program
         "/disciplines",
         "/menu",
         "/appointments",
-        "/cancelAppointment"
     };
 
     private static void Main(string[] args)
@@ -53,7 +52,14 @@ public class Program
 
     private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
-        await ProcedureMessageAsync(update);
+        await _logger.Info(update switch
+        {
+            var upd when upd.CallbackQuery != null => $"Recieved callback from {update.CallbackQuery.From} : {update.CallbackQuery.Data}",
+            var upd when upd.Message != null && !string.IsNullOrWhiteSpace(upd.Message.Text) => $"Recieved message from {update.Message.From} : {update.Message.Text}",
+            _ => "unknown update format"
+        });
+
+       await ProcedureMessageAsync(update);
     }
 
     private static async Task ProcedureMessageAsync(Update update)
@@ -64,7 +70,6 @@ public class Program
 
     private static async Task HandleCallbackQuery(CallbackQuery callbackQuery, Chat chat)
     {
-        await _logger.Info($"{chat.Username} ({chat.Id}): {callbackQuery.Data}");
         await (callbackQuery.Data switch
         {
             var data when data.StartsWith("/seeDiscipline_") => HandleWorkersWithTime(data, chat),
@@ -77,7 +82,6 @@ public class Program
 
     private static async Task HandleMessage(Message message)
     {
-        await _logger.Info($"{message.From}: {message.Text}");
         if (message.Entities != null && message.Entities.Any())
         {
             if (message.Entities.Length > 1)
@@ -170,7 +174,7 @@ public class Program
         foreach (var a in appointments)
         {
             buttons.Add(InlineKeyboardButton
-                .WithCallbackData($"{a.Discipline.Name} в {a.StartsAt:g}", $"/appointmentDetals_{a.StartsAt}_{a.UserID}_{a.DisciplineID}"));
+                .WithCallbackData($"{a.Discipline.Name} в {a.StartsAt:g}", $"/appointmentDetals_{a.ID}"));
         }
         var kbrdMarkup = new InlineKeyboardMarkup(buttons);
         return kbrdMarkup;
@@ -180,17 +184,14 @@ public class Program
     private static async Task HandleAppointmentDetals(string data, Chat chat)
     {
         var splittedData = data.Split('_');
-        var startsAt =DateTime.Parse(splittedData[1]);
-        var userID = long.Parse(splittedData[2]);
-        var disciplineID = long.Parse(splittedData[3]);
+        var appointmentID = int.Parse(splittedData[1]);
 
         var appointment = (await CoreRequests.GetAppointments(chat.Id))
-            .Where(x => x.UserID == userID && x.DisciplineID == disciplineID && x.StartsAt == startsAt)
-            .FirstOrDefault();
+            .FirstOrDefault(x => x.ID == appointmentID);
 
-        var message = new string($"Информация о записи: \nДисциплина: {appointment.Discipline.Name} \nИсполнитель: {appointment.Worker.UserName} \nВремя начала: {startsAt} \nПродолжительность: {appointment.Longevity}\nСтоимость: {Round(appointment.Price)}");
+        var message = $"Информация о записи: \nДисциплина: {appointment.Discipline.Name} \nИсполнитель: {appointment.Worker.UserName} \nВремя начала: {appointment.StartsAt:g} \nПродолжительность: {appointment.Longevity}\nСтоимость: {Round(appointment.Price)}";
         var cancelButton = new InlineKeyboardMarkup(InlineKeyboardButton
-                .WithCallbackData("Отменить запись", $"/cancelAppointment_{disciplineID}_{userID}_{startsAt}"));
+                .WithCallbackData("Отменить запись", $"/cancelAppointment_{appointmentID}"));
 
         await _botClient.SendTextMessageAsync(chat, message, replyMarkup: cancelButton);
     }
@@ -198,11 +199,10 @@ public class Program
     private static async Task HandleCancelAppointment(string data, Chat chat)
     {
         var splittedData = data.Split('_');
-        var disciplineID = splittedData[1];
-        var userID = splittedData[2];
-        var startsAt = splittedData[3];
+        var appointmentID = int.Parse(splittedData[1]);
 
-        //удалить запись из бд, уникальный идентификатор - айди дисциплины и юзера + время начала т.к. один чел может записаться на одну дисциплину только на одно время
+
+        var res = await CoreRequests.DeleteAppointmentAsync(appointmentID);
     }
 
     private static async Task HandleWorkersWithTime(string data, Chat chat)

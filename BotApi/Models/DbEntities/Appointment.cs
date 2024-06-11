@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BotApi.Models.DbEntities
 {
-    [PrimaryKey(nameof(UserID), nameof(WorkerID), nameof(DisciplineID), nameof(StartsAt))]
     public class Appointment
     {
+        [Key]
+        public int ID { get; set; }
+
         public long UserID { get; set; }
 
         [ForeignKey(nameof(UserID))]
@@ -28,5 +31,7 @@ namespace BotApi.Models.DbEntities
         public decimal Price { get; set; }
 
         public string? Description { get; set; }
+
+        public bool IsCompleted { get; set; }
     }
 }

@@ -71,5 +71,11 @@ namespace BotAPILib
             var appointments = await response.Content.ReadFromJsonAsync<List<Appointment>>();
             return appointments;
         }
+
+        public static async Task<bool> DeleteAppointmentAsync(int appointmentID)
+        {
+            var response = await _httpClient.DeleteAsync($"http://localhost:5274/api/BotHostAPI/DeleteAppointment?appointmentID={appointmentID}");
+            return response.IsSuccessStatusCode;
+        }
     }
 }

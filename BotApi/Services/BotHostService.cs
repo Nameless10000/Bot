@@ -2,6 +2,7 @@
 using BotApi.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 
 namespace BotApi.Services
 {
@@ -117,6 +118,18 @@ namespace BotApi.Services
                 .Where(x => x.UserID == userID)
                 .ToListAsync();
             return appointments;
+        }
+
+        public async Task<bool> DeleteAppointmentAsync(int appointmentID)
+        {
+            var appointment = await _botDbContext.Appointments.FirstOrDefaultAsync(x => x.ID == appointmentID);
+            if (appointment != null)
+            {
+                _botDbContext.Appointments.Remove(appointment);
+                await _botDbContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
     }
 }

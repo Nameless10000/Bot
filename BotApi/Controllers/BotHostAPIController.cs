@@ -72,5 +72,11 @@ namespace BotApi.Controllers
         {
             return new(await _botHostService.GetAppointmentsAsync(userID));
         }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAppointment([FromQuery] int appointmentID)
+        {
+            return await _botHostService.DeleteAppointmentAsync(appointmentID) ? Ok() : BadRequest();
+        }
     }
 }
