@@ -112,8 +112,8 @@ namespace BotApi.Services
         public async Task<List<Appointment>> GetAppointmentsAsync(long userID)
         {
             var appointments = await _botDbContext.Appointments
+                .Include(x => x.Discipline)
                 .Include(x => x.Worker)
-                .Include(x => x.User)
                 .Where(x => x.UserID == userID)
                 .ToListAsync();
             return appointments;

@@ -9,6 +9,7 @@ using BotLogger;
 using BotApi.Models.DTOs;
 using static BotHost.StickerFactory;
 using static System.Math;
+using BotApi.Models.DbEntities;
 
 namespace BotHost;
 
@@ -39,6 +40,7 @@ public class Program
         var token = await CoreRequests.GetBotTokenAsync("qwerty");
         _botClient = new TelegramBotClient(token);
         _botClient.StartReceiving(UpdateHandler, ErrorHandler);
+        await _logger.Info($"Бот запущен");
         Console.ReadLine();
 
         _logger.Dispose(); // Высвобождение ресурсов логгера
@@ -62,11 +64,14 @@ public class Program
 
     private static async Task HandleCallbackQuery(CallbackQuery callbackQuery, Chat chat)
     {
+        await _logger.Info($"{chat.Username} ({chat.Id}): {callbackQuery.Data}");
         await (callbackQuery.Data switch
         {
             var data when data.StartsWith("/seeDiscipline_") => HandleWorkersWithTime(data, chat),
             var data when data.StartsWith("/selectWorker_") => HandleTimePicker(data, chat),
-            var data when data.StartsWith("/selectedTime_") => HandleAppoint(data, chat)
+            var data when data.StartsWith("/selectedTime_") => HandleAppoint(data, chat),
+            var data when data.StartsWith("/appointmentDetals_") => HandleAppointmentDetals(data, chat),
+            var data when data.StartsWith("/cancelAppointment_") => HandleCancelAppointment(data, chat)
         });
     }
 
@@ -145,7 +150,7 @@ public class Program
     private static async Task<InlineKeyboardMarkup> GenerateTimeButtons(int from, int to, long workerID, string disciplineID)
     {
         var timeList = new List<List<InlineKeyboardButton>>();
-        for (var hour = from; hour<to;hour++)
+        for (var hour = from; hour<=to;hour++)
         {
             var mph = new List<InlineKeyboardButton>();
             for (var minute = 0; minute < 60; minute += 15)
@@ -159,7 +164,47 @@ public class Program
         return kbrdMarkup;
     }
 
+    private static async Task<InlineKeyboardMarkup> GenerateAppointmentsButtons(List<Appointment> appointments)
+    {
+        var buttons = new List<InlineKeyboardButton>();
+        foreach (var a in appointments)
+        {
+            buttons.Add(InlineKeyboardButton
+                .WithCallbackData($"{a.Discipline.Name} в {a.StartsAt:g}", $"/appointmentDetals_{a.StartsAt}_{a.UserID}_{a.DisciplineID}"));
+        }
+        var kbrdMarkup = new InlineKeyboardMarkup(buttons);
+        return kbrdMarkup;
+    }
+
     #region CallbackQuery
+    private static async Task HandleAppointmentDetals(string data, Chat chat)
+    {
+        var splittedData = data.Split('_');
+        var startsAt =DateTime.Parse(splittedData[1]);
+        var userID = long.Parse(splittedData[2]);
+        var disciplineID = long.Parse(splittedData[3]);
+
+        var appointment = (await CoreRequests.GetAppointments(chat.Id))
+            .Where(x => x.UserID == userID && x.DisciplineID == disciplineID && x.StartsAt == startsAt)
+            .FirstOrDefault();
+
+        var message = new string($"Информация о записи: \nДисциплина: {appointment.Discipline.Name} \nИсполнитель: {appointment.Worker.UserName} \nВремя начала: {startsAt} \nПродолжительность: {appointment.Longevity}\nСтоимость: {Round(appointment.Price)}");
+        var cancelButton = new InlineKeyboardMarkup(InlineKeyboardButton
+                .WithCallbackData("Отменить запись", $"/cancelAppointment_{disciplineID}_{userID}_{startsAt}"));
+
+        await _botClient.SendTextMessageAsync(chat, message, replyMarkup: cancelButton);
+    }
+
+    private static async Task HandleCancelAppointment(string data, Chat chat)
+    {
+        var splittedData = data.Split('_');
+        var disciplineID = splittedData[1];
+        var userID = splittedData[2];
+        var startsAt = splittedData[3];
+
+        //удалить запись из бд, уникальный идентификатор - айди дисциплины и юзера + время начала т.к. один чел может записаться на одну дисциплину только на одно время
+    }
+
     private static async Task HandleWorkersWithTime(string data, Chat chat)
     {
         int disciplineID = int.Parse(data.Split('_')[1]);
@@ -171,7 +216,7 @@ public class Program
             .ToList();
         var kbrdMarkup = new InlineKeyboardMarkup(buttons);
 
-        await _botClient.SendTextMessageAsync(chat, "Ближайшее доступное время для записи. Выберите работника для бронирования занятия: \n", replyMarkup: kbrdMarkup);
+        await _botClient.SendTextMessageAsync(chat, "Выберите работника для бронирования занятия: \n", replyMarkup: kbrdMarkup);
     }
 
     private static async Task HandleTimePicker(string data, Chat chat)
@@ -226,10 +271,9 @@ public class Program
         }
         else
         {
-            var sb = new StringBuilder("Ваши записи: \n");
-            sb.Append(string.Join(",\n", appointments.Select(x => $"{x.Discipline} у {x.Worker.UserName} в {x.StartsAt:g} за {Round(x.Price,2)}₽")));
+            var kbrdMarkup = await GenerateAppointmentsButtons(appointments);
 
-            await _botClient.SendTextMessageAsync(chat, sb.ToString());
+            await _botClient.SendTextMessageAsync(chat, "Ваши записи:\n", replyMarkup: kbrdMarkup);
             await _botClient.SendStickerAsync(chat, GetSticker(StickerType.GotAppointmentsAny));
         }
     }
