@@ -40,6 +40,11 @@ public class NotifListener (TelegramBotClient _botClient, LoggerLib _logger)
                     foreach (var notification in notifications)
                     {
                         await _botClient.SendTextMessageAsync(notification.ChatID, notification.Message);
+                        await _botClient.SendStickerAsync(notification.ChatID, StickerFactory.GetSticker(notification.NotificationReason switch
+                        {
+                            NotificationReason.Daily => StickerType.DailyAppointments,
+                            NotificationReason.Nearest => StickerType.NearestAppointments
+                        }));
                     }
 
                     await _logger.Info($"[{DateTime.Now}] Request received: {request.HttpMethod} {request.Url}");

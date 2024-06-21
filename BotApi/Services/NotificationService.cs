@@ -24,12 +24,12 @@ namespace BotApi.Services
                 .ToListAsync();
 
             var models = appointments
-                //.GroupBy(x => x.User)
                 .Select(x => new NotificationDTO
                 {
                     ChatID = x.Key.ID,
                     UserName = x.Key.UserName,
-                    Message = x.Aggregate($"{x.Key.UserName}, ваши записи на сегодня:\n", (acc, cur) => acc += $"{cur.Discipline.Name} в {cur.StartsAt:t}")
+                    Message = x.Aggregate($"{x.Key.UserName}, ваши записи на сегодня:\n", (acc, cur) => acc += $"{cur.Discipline.Name} в {cur.StartsAt:t}\n"),
+                    NotificationReason = NotificationReason.Daily
                 })
                 .ToList();
 
@@ -45,18 +45,24 @@ namespace BotApi.Services
                 .Include(x => x.User)
                 .Include(x => x.Discipline)
                 .Where(x => x.StartsAt > now && x.StartsAt < now.AddHours(1) && !x.IsNotified)
-                .GroupBy(x => x.User)
                 .ToListAsync();
 
             var models = appointments
+                .GroupBy(x => x.User)
                 .Select(x => new NotificationDTO
                 {
                     UserName = x.Key.UserName,
                     ChatID = x.Key.ID,
-                    Message = x.Aggregate($"{x.Key.UserName}, у вас приближается занятие:\n", (acc, cur) => acc += $"{cur.Discipline.Name} в {cur.StartsAt:t}")
+                    Message = x.Aggregate($"{x.Key.UserName}, у вас приближается занятие:\n", (acc, cur) => acc += $"{cur.Discipline.Name} в {cur.StartsAt:t}\n"),
+                    NotificationReason = NotificationReason.Nearest
                 });
 
             await _httpClient.PostAsJsonAsync(_botData.Value.Path, models);
+
+            appointments.ForEach(x => x.IsNotified = true);
+
+            _dbContext.Appointments.UpdateRange(appointments);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

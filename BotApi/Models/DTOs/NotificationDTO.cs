@@ -7,5 +7,7 @@
         public long ChatID { get; set; }
 
         public string Message { get; set; }
+
+        public NotificationReason NotificationReason { get; set; }
     }
 }
