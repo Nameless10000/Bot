@@ -71,4 +71,9 @@ app.UseCors(corsBuilder =>
         .AllowAnyOrigin();
 });
 
+/*var scope = app.Services.CreateScope();
+var notifService = scope.ServiceProvider.GetService<NotifService>();
+
+RecurringJob.AddOrUpdate("DailyNotification",);*/
+
 app.Run();
