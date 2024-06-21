@@ -40,7 +40,7 @@ public class Program
         var token = await CoreRequests.GetBotTokenAsync("qwerty");
         _botClient = new TelegramBotClient(token);
         _botClient.StartReceiving(UpdateHandler, ErrorHandler);
-        await _logger.Info($"Бот запущен");
+        await _logger.Info($"Bot launched");
         Console.ReadLine();
 
         _logger.Dispose(); // Высвобождение ресурсов логгера
