@@ -43,8 +43,11 @@ namespace BotLogger
 
         private async Task WriteLog(string log)
         {
-            await _logWriter.WriteLineAsync(log);
-            await _logWriter.FlushAsync();
+            lock(_logWriter)
+            {
+                _logWriter.WriteLineAsync(log).GetAwaiter().GetResult();
+                _logWriter.FlushAsync().GetAwaiter().GetResult(); 
+            }
         }
 
         public void Dispose()

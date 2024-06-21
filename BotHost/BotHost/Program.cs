@@ -43,6 +43,15 @@ public class Program
         var token = await CoreRequests.GetBotTokenAsync("qwerty");
         _botClient = new TelegramBotClient(token);
         _botClient.StartReceiving(UpdateHandler, ErrorHandler);
+
+        var cts = new CancellationTokenSource();
+        var ct = cts.Token;
+        var listener = new NotifListener(_botClient, _logger);
+
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до тех пор, пока вызов не будет завершен
+        listener.StartServer("http://localhost:5080/", ct);
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до тех пор, пока вызов не будет завершен
+
         await _logger.Info($"Bot launched");
         Console.ReadLine();
 

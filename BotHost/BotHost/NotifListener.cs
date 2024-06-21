@@ -7,15 +7,19 @@ namespace BotHost;
 
 public class NotifListener (TelegramBotClient _botClient, LoggerLib _logger)
 {
-    Task StartServer(string url, CancellationToken cancellationToken)
+    public async Task StartServer(string url, CancellationToken cancellationToken)
     {
-        return Task.Run(async () =>
+        await Task.Run(async () =>
         {
-            using HttpListener listener = new();
-            listener.Prefixes.Add(url);
-            listener.Start();
+                using HttpListener listener = new();
+            try
+            {
+                listener.Prefixes.Add(url);
+                listener.Start();
+            }
+            catch(Exception ex) { }
 
-            Console.WriteLine($"Слушаем {url}");
+            await _logger.Info($"Listening {url}");
 
             while (!cancellationToken.IsCancellationRequested)
             {
