@@ -10,7 +10,7 @@ namespace BotApi.Services
     {
         private HttpClient _httpClient = new();
 
-        public async void SendDailyAppointments()
+        public async Task SendDailyAppointments()
         {
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
@@ -29,14 +29,14 @@ namespace BotApi.Services
                 {
                     ChatID = x.Key.ID,
                     UserName = x.Key.UserName,
-                    Message = x.Aggregate($"{x.Key.UserName}, ваши записи на сегодня:\n", (acc, cur) => acc += $"{cur.Discipline.Name} в ${cur.StartsAt:t}")
+                    Message = x.Aggregate($"{x.Key.UserName}, ваши записи на сегодня:\n", (acc, cur) => acc += $"{cur.Discipline.Name} в {cur.StartsAt:t}")
                 })
                 .ToList();
 
             await _httpClient.PostAsJsonAsync(_botData.Value.Path, models);
         }
 
-        public async void SendNearestAppointments()
+        public async Task SendNearestAppointments()
         {
             var now = DateTime.Now;
 
@@ -53,7 +53,7 @@ namespace BotApi.Services
                 {
                     UserName = x.Key.UserName,
                     ChatID = x.Key.ID,
-                    Message = x.Aggregate($"{x.Key.UserName}, ваши записи на сегодня:\n", (acc, cur) => acc += $"{cur.Discipline.Name} в ${cur.StartsAt:t}")
+                    Message = x.Aggregate($"{x.Key.UserName}, у вас приближается занятие:\n", (acc, cur) => acc += $"{cur.Discipline.Name} в {cur.StartsAt:t}")
                 });
 
             await _httpClient.PostAsJsonAsync(_botData.Value.Path, models);

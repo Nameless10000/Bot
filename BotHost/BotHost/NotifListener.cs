@@ -2,6 +2,8 @@
 using System.Text;
 using Telegram.Bot;
 using BotLogger;
+using Newtonsoft.Json;
+using BotApi.Models.DTOs;
 
 namespace BotHost;
 
@@ -31,15 +33,16 @@ public class NotifListener (TelegramBotClient _botClient, LoggerLib _logger)
                     var response = context.Response;
 
                     // Обработка запроса
-                    string responseString = "Сообщение получено!";
-                    byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-                    response.ContentLength64 = buffer.Length;
+                    using var sr = new StreamReader(request.InputStream);
+                    var stringifiedNotifs = await sr.ReadLineAsync();
+                    var notifications = JsonConvert.DeserializeObject<List<NotificationDTO>>(stringifiedNotifs);
 
+                    foreach (var notification in notifications)
+                    {
+                        await _botClient.SendTextMessageAsync(notification.ChatID, notification.Message);
+                    }
 
-                    using var responseStream = response.OutputStream;
-                    await responseStream.WriteAsync(buffer, 0, buffer.Length);
-
-                    await _logger.Info($"[{DateTime.Now}] Получен запрос: {request.HttpMethod} {request.Url}");
+                    await _logger.Info($"[{DateTime.Now}] Request received: {request.HttpMethod} {request.Url}");
                 }
                 catch (HttpListenerException ex) when (ex.ErrorCode == 995) // Код 995: Операция прервана
                 {

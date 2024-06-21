@@ -76,6 +76,6 @@ var scope = app.Services.CreateScope();
 var notifService = scope.ServiceProvider.GetService<NotificationService>()!;
 
 RecurringJob.AddOrUpdate("DailyNotification", () => notifService.SendDailyAppointments(), Cron.Daily);
-RecurringJob.AddOrUpdate("DailyNotification", () => notifService.SendNearestAppointments(), () => "*/15 * * * 1-5");
+RecurringJob.AddOrUpdate("NearestNotification", () => notifService.SendNearestAppointments(), () => "*/15 * * * 1-5");
 
 app.Run();

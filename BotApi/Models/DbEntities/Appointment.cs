@@ -33,7 +33,7 @@ namespace BotApi.Models.DbEntities
         public string? Description { get; set; }
 
         public bool IsCompleted => StartsAt <= DateTime.Now;
-
-        public bool IsNotified { get; set; }
+        
+        public bool IsNotified { get; set; } = false;
     }
 }

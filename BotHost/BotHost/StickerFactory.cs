@@ -25,7 +25,8 @@ namespace BotHost
         HasTimeToAppoint,
         AppointmentCancelSuccess,
         AppointmentCancelError,
-        NOTUSED
+        NearestAppointments,
+        DailyAppointments
     }
 
     // DTO - это объект для передачи данных (например, через HTTP REST запрос). Это скорее фабрика стикеров - StickerFactory
@@ -51,7 +52,8 @@ namespace BotHost
             { StickerType.HasTimeToAppoint, InputFile.FromString("CAACAgIAAxkBAAEGDFxmZzmX0cvwBcrglFhI246KLI36fwAC7DAAAswVeUs2-fDhrl2n9DUE")},
             { StickerType.AppointmentCancelSuccess, InputFile.FromString("CAACAgIAAxkBAAEGVJBmdaCGuIzPT8yOcxAD1NLz0JgvXQACLzoAAkfukEo9_LWqutdZ2jUE") },
             { StickerType.AppointmentCancelError, InputFile.FromString("CAACAgIAAxkBAAEGVJJmdaD-bkvTEkWES0wN18sCjGTETQACNjUAArPV6UrxyxaeuuPw7zUE") },
-            { StickerType.NOTUSED, InputFile.FromString("CAACAgIAAxkBAAEGBF1mZa66HI4AAfcdePi0_t7kJSQlWkQAAg8rAALTT3lKxOjTEIbMnhc1BA") }
+            { StickerType.NearestAppointments, InputFile.FromString("CAACAgIAAxkBAAEGVRhmdcd8lGbXgJ5t3M7FSJLuYnXAnAACqToAAkmi0UgE1rPURZ4n8DUE") },
+            { StickerType.DailyAppointments, InputFile.FromString("CAACAgIAAxkBAAEGBF1mZa66HI4AAfcdePi0_t7kJSQlWkQAAg8rAALTT3lKxOjTEIbMnhc1BA") }
         };
 
         public static InputFile GetSticker(StickerType stickerType)
