@@ -23,6 +23,8 @@ namespace BotHost
         GotAppointmentsNo,
         NoTimeToAppoint,
         HasTimeToAppoint,
+        AppointmentCancelSuccess,
+        AppointmentCancelError,
         NOTUSED
     }
 
@@ -47,6 +49,8 @@ namespace BotHost
             { StickerType.GotAppointmentsNo, InputFile.FromString("CAACAgIAAxkBAAEGC6JmZy0WM7Nw2QKokGkjNm0AAYw4hrUAAgI1AAIzB5FK_6OfOGROi6Y1BA") },
             { StickerType.NoTimeToAppoint, InputFile.FromString("CAACAgIAAxkBAAEGC8ZmZzi7etT36Inq7kWSZSfEpbV7AgACXioAAiiXgEo0hSj91_ul7zUE")},
             { StickerType.HasTimeToAppoint, InputFile.FromString("CAACAgIAAxkBAAEGDFxmZzmX0cvwBcrglFhI246KLI36fwAC7DAAAswVeUs2-fDhrl2n9DUE")},
+            { StickerType.AppointmentCancelSuccess, InputFile.FromString("CAACAgIAAxkBAAEGVJBmdaCGuIzPT8yOcxAD1NLz0JgvXQACLzoAAkfukEo9_LWqutdZ2jUE") },
+            { StickerType.AppointmentCancelError, InputFile.FromString("CAACAgIAAxkBAAEGVJJmdaD-bkvTEkWES0wN18sCjGTETQACNjUAArPV6UrxyxaeuuPw7zUE") },
             { StickerType.NOTUSED, InputFile.FromString("CAACAgIAAxkBAAEGBF1mZa66HI4AAfcdePi0_t7kJSQlWkQAAg8rAALTT3lKxOjTEIbMnhc1BA") }
         };
 

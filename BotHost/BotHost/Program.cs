@@ -22,9 +22,10 @@ public class Program
 
     private static List<string> _commandsAvailable = new()
     {
-        "/disciplines",
         "/menu",
-        "/appointments",
+        "Дисциплины",
+        "Мои записи",
+        "Меню"
     };
 
     private static void Main(string[] args)
@@ -34,6 +35,8 @@ public class Program
 
     private static async Task MainAsync()
     {
+        //Console.InputEncoding = Encoding.ASCII; Сделать корректный вывод кириллицы в консоль
+
         _logger = new();
         _logger.ConfigureLogger();
 
@@ -101,23 +104,24 @@ public class Program
 
     private static async Task ProcedureCommand (Message message, MessageEntity entity = null)
     {
-        if (entity == null || entity.Type != MessageEntityType.BotCommand)
+        if (message.Text == null || !_commandsAvailable.Contains(message.Text))
         {
             await _botClient.SendStickerAsync(message.Chat.Id, GetSticker(StickerType.NotCommand)
                 );
             await _botClient.SendTextMessageAsync(message.Chat, "Я тут для команд вообще-то!");
         }
 
-        if (entity != null)
-        {
-            var command = string.Join("", message.Text.Skip(entity.Offset).Take(entity.Length));
+        var command = _commandsAvailable.FirstOrDefault(x => x == message.Text);
 
-            await (command switch
+        if (command != null)
+        {
+            await (command.ToLower().Trim() switch
             {
-                "/disciplines" => HandleDisciplines(message.Chat),
+                "дисциплины" => HandleDisciplines(message.Chat),
                 "/start" => HandleAddingUser(message.Chat),
                 "/menu" => AddMenuButtons(message.Chat),
-                "/appointments" => HandleSeeAppointments(message.Chat),
+                "меню" => AddMenuButtons(message.Chat),
+                "мои записи" => HandleSeeAppointments(message.Chat),
                 "/cancelAppointment" => Template(message.Chat),
                 _ => NotCommandMessage(message)
             });
@@ -126,7 +130,7 @@ public class Program
 
     private static async Task AddMenuButtons(Chat chat)
     {
-        await AddButtons("Добро пожаловать в меню!", chat, 2, _commandsAvailable);
+        await AddButtons("Добро пожаловать в меню!", chat, 2, _commandsAvailable.Where(x => !x.Contains("/")));
         await _botClient.SendStickerAsync(chat, GetSticker(StickerType.Hello));
     }
 
@@ -203,6 +207,9 @@ public class Program
         var appointmentID = int.Parse(splittedData[1]);
 
         var res = await CoreRequests.DeleteAppointmentAsync(appointmentID);
+
+        await _botClient.SendTextMessageAsync(chat, res ? "Запись отменена" : "Ошибка отмены записи");
+        await _botClient.SendStickerAsync(chat, res ? GetSticker(StickerType.AppointmentCancelSuccess) : GetSticker(StickerType.AppointmentCancelError));
     }
 
     private static async Task HandleWorkersWithTime(string data, Chat chat)
