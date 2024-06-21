@@ -2,6 +2,10 @@ using BotApi.Models.Configurations;
 using BotApi.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Hangfire;
+using Hangfire.Storage;
+using Hangfire.MySql;
+using System.Transactions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +16,27 @@ var DataBaseSection = builder.Configuration.GetSection("DataBase");
 
 builder.Services.Configure<BotData>(botSection);
 builder.Services.Configure<DBInfo>(DataBaseSection);
+
+var hfDbPath = builder.Configuration.GetValue<string>("HangFireDB");
+
+builder.Services.AddHangfire(conf => conf
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseStorage<MySqlStorage>(new (hfDbPath, new MySqlStorageOptions
+    {
+        TransactionIsolationLevel = IsolationLevel.ReadCommitted,
+        QueuePollInterval = TimeSpan.FromSeconds(15),
+        JobExpirationCheckInterval = TimeSpan.FromHours(1),
+        CountersAggregateInterval = TimeSpan.FromMinutes(5),
+        PrepareSchemaIfNecessary = true,
+        DashboardJobListLimit = 50000,
+        TransactionTimeout = TimeSpan.FromMinutes(1),
+        TablesPrefix = "Hangfire"
+    }))
+);
+
+builder.Services.AddHangfireServer();
 
 builder.Services.AddCors();
 
@@ -33,6 +58,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/dashboard");
 
 app.MapControllers();
 

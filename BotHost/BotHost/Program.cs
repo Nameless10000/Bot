@@ -15,7 +15,7 @@ namespace BotHost;
 
 public class Program
 {
-    private const int LAST_APPOINTMENT_HOUR = 24;
+    private const int LAST_APPOINTMENT_HOUR = 23;
     private const int FIRST_APPOINTMENT_HOUR = 10;
     private static TelegramBotClient _botClient;
     private static LoggerLib _logger;
