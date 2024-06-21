@@ -43,6 +43,7 @@ builder.Services.AddCors();
 builder.Services.AddDbContext<BotDbContext>(opt => opt.UseMySql("Server=localhost;Database=Bot;Uid=root;Pwd=root;", new MySqlServerVersion(new Version(5,7,24))));
 
 builder.Services.AddTransient<BotHostService>();
+builder.Services.AddTransient<NotificationService>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -71,9 +72,10 @@ app.UseCors(corsBuilder =>
         .AllowAnyOrigin();
 });
 
-/*var scope = app.Services.CreateScope();
-var notifService = scope.ServiceProvider.GetService<NotifService>();
+var scope = app.Services.CreateScope();
+var notifService = scope.ServiceProvider.GetService<NotificationService>()!;
 
-RecurringJob.AddOrUpdate("DailyNotification",);*/
+RecurringJob.AddOrUpdate("DailyNotification", () => notifService.SendDailyAppointments(), Cron.Daily);
+RecurringJob.AddOrUpdate("DailyNotification", () => notifService.SendNearestAppointments(), () => "*/15 * * * 1-5");
 
 app.Run();
