@@ -48,11 +48,21 @@ public class NotifListener (TelegramBotClient _botClient, LoggerLib _logger)
                     }
 
                     await _logger.Info($"[{DateTime.Now}] Request received: {request.HttpMethod} {request.Url}");
+
+                    var botResponseDTO = new BotResponseDTO
+                    {
+                        Code = HttpStatusCode.OK
+                    };
+
+                    var respBuffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(botResponseDTO));
+                    using var outputStream = response.OutputStream;
+                    await outputStream.WriteAsync(respBuffer,0,respBuffer.Length);
                 }
                 catch (HttpListenerException ex) when (ex.ErrorCode == 995) // Код 995: Операция прервана
                 {
                     // Это нормально при отмене
-                    Console.WriteLine("Сервер остановлен.");
+
+                    await _logger.Info("Сервер остановлен");
                     break;
                 }
                 catch (Exception e)

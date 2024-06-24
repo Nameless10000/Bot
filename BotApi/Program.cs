@@ -26,12 +26,12 @@ builder.Services.AddHangfire(conf => conf
     .UseStorage<MySqlStorage>(new (hfDbPath, new MySqlStorageOptions
     {
         TransactionIsolationLevel = IsolationLevel.ReadCommitted,
-        QueuePollInterval = TimeSpan.FromSeconds(15),
+        QueuePollInterval = TimeSpan.FromMinutes(1),
         JobExpirationCheckInterval = TimeSpan.FromHours(1),
-        CountersAggregateInterval = TimeSpan.FromMinutes(5),
+        CountersAggregateInterval = TimeSpan.FromHours(5),
         PrepareSchemaIfNecessary = true,
         DashboardJobListLimit = 50000,
-        TransactionTimeout = TimeSpan.FromMinutes(1),
+        TransactionTimeout = TimeSpan.FromMinutes(5),
         TablesPrefix = "Hangfire"
     }))
 );

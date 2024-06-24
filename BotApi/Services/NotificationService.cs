@@ -3,6 +3,7 @@ using BotApi.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Linq;
+using System.Net;
 
 namespace BotApi.Services
 {
@@ -57,12 +58,17 @@ namespace BotApi.Services
                     NotificationReason = NotificationReason.Nearest
                 });
 
-            await _httpClient.PostAsJsonAsync(_botData.Value.Path, models);
+            var response = await _httpClient.PostAsJsonAsync(_botData.Value.Path, models);
+            var status = await response.Content.ReadFromJsonAsync<BotResponseDTO>();
+            if (status.Code != HttpStatusCode.OK)
+                return;
 
-            appointments.ForEach(x => x.IsNotified = true);
+            foreach (var app in appointments)
+                app.IsNotified = true;
 
             _dbContext.Appointments.UpdateRange(appointments);
             await _dbContext.SaveChangesAsync();
+
         }
     }
 }
