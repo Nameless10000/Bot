@@ -22,6 +22,7 @@ public class Program
 
     private static List<string> _commandsAvailable = new()
     {
+        "/start",
         "/menu",
         "Дисциплины",
         "Мои записи",
