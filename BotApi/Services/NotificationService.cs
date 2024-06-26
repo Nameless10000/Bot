@@ -59,7 +59,7 @@ namespace BotApi.Services
                 });
 
             var response = await _httpClient.PostAsJsonAsync(_botData.Value.Path, models);
-            var status = await response.Content.ReadFromJsonAsync<BotResponseDTO>();
+            var status = (await response.Content.ReadFromJsonAsync<BotResponseDTO>())!;
             if (status.Code != HttpStatusCode.OK)
                 return;
 
